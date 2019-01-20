@@ -86,6 +86,7 @@ export default {
       shell.openExternal(encodeURI(link));
     },
     getCurrentBalance() {
+      console.log("获取账户余额");
       client
         .listUnspent()
         .then((unspent) => {
