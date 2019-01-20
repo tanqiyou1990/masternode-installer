@@ -60,7 +60,8 @@ const Client = require('motion-core');
 const client = new Client({
   username: 'mn',
   password: '999000',
-  port: 3385,
+  port: 9902,
+  // port: 3385,
 });
 
 export default {
@@ -86,7 +87,7 @@ export default {
       shell.openExternal(encodeURI(link));
     },
     getCurrentBalance() {
-      console.log("获取账户余额");
+      console.log('获取账户余额');
       client
         .listUnspent()
         .then((unspent) => {
