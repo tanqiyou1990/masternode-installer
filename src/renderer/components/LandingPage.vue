@@ -48,7 +48,7 @@ export default {
   methods: {
     runDaemon() {
       if (this.$store.state.Information.mnConfPath) {
-        execFile(`${path.join(__static, `/daemon/${os.platform()}/motiond`)
+        execFile(`${path.join(__static, `/daemon/${os.platform()}/vpubd`)
           .replace('app.asar', 'app.asar.unpacked')}`,
         ['-rpcuser=mn', '-rpcpassword=999000', `-datadir=${this.$store.state.Information.mnConfPath}`],
         (error, stdout, stderr) => {
@@ -76,7 +76,7 @@ export default {
     },
   },
   mounted() {
-    chmod(`${path.join(__static, `/daemon/${os.platform()}/motiond${os.platform() === 'win32' ? '.exe' : ''}`).replace('app.asar', 'app.asar.unpacked')}`,
+    chmod(`${path.join(__static, `/daemon/${os.platform()}/vpubd${os.platform() === 'win32' ? '.exe' : ''}`).replace('app.asar', 'app.asar.unpacked')}`,
       '0777', (err) => {
         if (err) {
           console.log(err);
