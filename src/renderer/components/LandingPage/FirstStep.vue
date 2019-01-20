@@ -101,7 +101,7 @@ export default {
         });
     },
     compareMasternodes() {
-      axios.post('http://localhost:3385/', {
+      axios.post('http://127.0.0.1:3385/', {
         jsonrpc: '1.0',
         method: 'masternode',
         params: ['outputs'],

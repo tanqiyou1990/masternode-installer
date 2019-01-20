@@ -22,7 +22,7 @@ if (process.env.NODE_ENV !== 'development') {
 
 let mainWindow;
 const winURL = process.env.NODE_ENV === 'development'
-  ? 'http://localhost:9080'
+  ? 'http://127.0.0.1:9080'
   : `file://${__dirname}/index.html`;
 
 expressApp.get('/do-auth/:accessToken', (req, res) => {
