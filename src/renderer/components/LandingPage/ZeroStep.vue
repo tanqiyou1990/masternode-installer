@@ -26,9 +26,10 @@ export default {
   },
   methods: {
     getBlockCount() {
-      axios.get('https://explorer.motionproject.org/api/getblockcount')
+      axios.get('https://www.vpubchain.net/insight/status')
         .then((response) => {
-          this.blockCount = Number(response.data);
+          console.log(response.data)
+          // this.blockCount = Number(response.data);
         });
     },
     checkIfWalletIsLoaded() {
