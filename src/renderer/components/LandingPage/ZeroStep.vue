@@ -27,7 +27,7 @@ export default {
   },
   methods: {
     getBlockCount() {
-      axios.get('https://www.vpubchain.net/insight/status')
+      axios.post('https://www.vpubchain.net/insight/status')
         .then((response) => {
           console.log(response.data);
           // this.blockCount = Number(response.data);
