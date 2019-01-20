@@ -32,7 +32,7 @@ export default {
       //     console.log(response.data);
       //     // this.blockCount = Number(response.data);
       //   });
-      this.blockCount = 29691;
+      this.blockCount = Number('29691')
     },
     checkIfWalletIsLoaded() {
       client
