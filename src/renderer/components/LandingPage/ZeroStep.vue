@@ -15,7 +15,8 @@ const Client = require('motion-core');
 const client = new Client({
   username: 'mn',
   password: '999000',
-  port: 3385,
+  port: 9902,
+  // port: 3385,
 });
 
 export default {
