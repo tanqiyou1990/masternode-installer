@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+// import axios from 'axios';
 import { setTimeout } from 'timers';
 const remote = require('electron').remote;
 const Client = require('motion-core');
@@ -32,7 +32,7 @@ export default {
       //     console.log(response.data);
       //     // this.blockCount = Number(response.data);
       //   });
-      this.blockCount = Number('29691')
+      this.blockCount = Number('29691');
     },
     checkIfWalletIsLoaded() {
       client
