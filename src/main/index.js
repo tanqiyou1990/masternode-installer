@@ -4,8 +4,8 @@ const bodyParser = require('body-parser');
 const expressApp = express();
 const Client = require('motion-core');
 const client = new Client({
-  username: 'motion',
-  password: '47VMxa7GvxKaV3J',
+  username: 'mn',
+  password: '999000',
   port: 3385,
 });
 

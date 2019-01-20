@@ -50,7 +50,7 @@ export default {
       if (this.$store.state.Information.mnConfPath) {
         execFile(`${path.join(__static, `/daemon/${os.platform()}/motiond`)
           .replace('app.asar', 'app.asar.unpacked')}`,
-        ['-rpcuser=motion', '-rpcpassword=47VMxa7GvxKaV3J', `-datadir=${this.$store.state.Information.mnConfPath}`],
+        ['-rpcuser=mn', '-rpcpassword=999000', `-datadir=${this.$store.state.Information.mnConfPath}`],
         (error, stdout, stderr) => {
           if (error) {
             console.log('Wallet is open');
@@ -122,7 +122,7 @@ export default {
           });
         } else if (os.platform() === 'linux') {
           this.$store.commit('SET_MNCONFPATH', {
-            mnConfPath: `${os.userInfo().homedir}/.motioncore`,
+            mnConfPath: `${os.userInfo().homedir}/.vpubcore`,
           });
           this.runDaemon();
         }

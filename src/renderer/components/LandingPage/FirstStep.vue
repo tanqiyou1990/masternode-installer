@@ -58,8 +58,8 @@ import axios from 'axios';
 // import path from 'path';
 const Client = require('motion-core');
 const client = new Client({
-  username: 'motion',
-  password: '47VMxa7GvxKaV3J',
+  username: 'mn',
+  password: '999000',
   port: 3385,
 });
 
@@ -110,8 +110,8 @@ export default {
           'Content-Type': 'application/json',
         },
         auth: {
-          username: 'motion',
-          password: '47VMxa7GvxKaV3J',
+          username: 'mn',
+          password: '999000',
         },
       }).then((response) => {
         // eslint-disable-next-line
@@ -288,7 +288,7 @@ export default {
          `${os.userInfo().homedir}/Library/Application Support/MotionCore`;
         }
         if (os.platform() === 'linux') {
-          datadirPath = `${os.userInfo().homedir}/.motioncore`;
+          datadirPath = `${os.userInfo().homedir}/.vpubcore`;
         }
         if (fs.existsSync(`${datadirPath}/masternode.conf`)) {
           this.readCurrentMasternodes(`${datadirPath}/masternode.conf`);

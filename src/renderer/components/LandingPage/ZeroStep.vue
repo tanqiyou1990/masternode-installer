@@ -13,8 +13,8 @@ import { setTimeout } from 'timers';
 const remote = require('electron').remote;
 const Client = require('motion-core');
 const client = new Client({
-  username: 'motion',
-  password: '47VMxa7GvxKaV3J',
+  username: 'mn',
+  password: '999000',
   port: 3385,
 });
 
