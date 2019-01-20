@@ -5734,9 +5734,9 @@ moment@^2.10.6:
   version "2.22.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.22.1.tgz#529a2e9bf973f259c9643d237fda84de3a26e8ad"
 
-"motion-core@https://github.com/motioncrypto/motion-core":
+"motion-core@https://github.com/tanqiyou1990/motion-core":
   version "2.0.0"
-  resolved "https://github.com/motioncrypto/motion-core#748da1c89cb3b6f453da36422a24e266f110da66"
+  resolved "https://github.com/tanqiyou1990/motion-core#748da1c89cb3b6f453da36422a24e266f110da66"
   dependencies:
     "@uphold/request-logger" "^2.0.0"
     bluebird "^3.4.1"
