@@ -61,7 +61,7 @@ const client = new Client({
   username: 'mn',
   password: '999000',
   // port: 9902,
-  port: 3385,
+  port: 9902,
 });
 
 export default {
@@ -104,7 +104,7 @@ export default {
         });
     },
     compareMasternodes() {
-      axios.post('http://127.0.0.1:3385/', {
+      axios.post('http://127.0.0.1:9902/', {
         jsonrpc: '1.0',
         method: 'masternode',
         params: ['outputs'],
