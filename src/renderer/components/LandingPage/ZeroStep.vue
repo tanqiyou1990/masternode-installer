@@ -27,12 +27,10 @@ export default {
   },
   methods: {
     getBlockCount() {
-      // axios.post('https://www.vpubchain.net/insight/status')
-      //   .then((response) => {
-      //     console.log(response.data);
-      //     // this.blockCount = Number(response.data);
-      //   });
-      this.blockCount = Number('29691');
+      axios.post('https://pl.vpubchain.net/api/getblockcount')
+        .then((response) => {
+          this.blockCount = Number(response.data);
+        });
     },
     checkIfWalletIsLoaded() {
       client

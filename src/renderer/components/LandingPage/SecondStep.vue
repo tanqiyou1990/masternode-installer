@@ -66,7 +66,7 @@ export default {
                 this.dropletIps[index].currentStatus = 'Downloading Motion in the server...';
               } else if (this.dropletIps[index].currentVpsStep === 9) {
                 this.dropletIps[index].currentStatus = 'Installing Sentinel...';
-                axios.get('https://explorer.motionproject.org/api/getblockcount')
+                axios.get('https://pl.vpubchain.net/api/getblockcount')
                   .then((response) => {
                     this.totalBlocks = Number(response.data);
                   });
