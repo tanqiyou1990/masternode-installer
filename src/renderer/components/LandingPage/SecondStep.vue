@@ -177,6 +177,7 @@ runcmd:
           Authorization: `Bearer ${this.$store.state.Information.accessToken}`,
         },
       }).then((response) => {
+        console.log(response);
         this.DOAvailableRegions = response.data.regions
           .filter(region => region.available && region.sizes.includes('s-1vcpu-1gb'))
           .map(region => region.slug);
