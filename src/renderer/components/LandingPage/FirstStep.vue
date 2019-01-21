@@ -9,7 +9,8 @@
       <img src="~@/assets/digitalocean.png" class="do-logo" alt="DigitalOcean" />
       <ul class="buttons">
         <li>
-          <button @click="openLink($event, 'https://cloud.digitalocean.com/v1/oauth/authorize?client_id=87717c90e37ca7553cedceaded7325b5a7b3c1c2cfed6a7e178c97ebe9779ccd&redirect_uri=https://9fk4ake7rk.execute-api.us-east-1.amazonaws.com/default/motionoAuthCallback&response_type=code&scope=read write')">Login</button>
+          <!-- <button @click="openLink($event, 'https://cloud.digitalocean.com/v1/oauth/authorize?client_id=87717c90e37ca7553cedceaded7325b5a7b3c1c2cfed6a7e178c97ebe9779ccd&redirect_uri=https://9fk4ake7rk.execute-api.us-east-1.amazonaws.com/default/motionoAuthCallback&response_type=code&scope=read write')">Login</button> -->
+          <button @click="openLink($event, 'https://cloud.digitalocean.com/v1/oauth/authorize?client_id=983e6dc2ec0091b6aa6ea2d33924d5309361608086ce160aeb963f3ff0f4e27b&redirect_uri=https://paas.vpubchain.org/digitalAuthCallback&response_type=code&scope=read write')">Login</button>
         </li>
         <li>
           <button @click="openLink($event, 'https://m.do.co/c/7ef716d06656')">Signup</button>
