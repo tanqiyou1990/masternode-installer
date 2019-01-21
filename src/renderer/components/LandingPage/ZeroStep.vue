@@ -8,7 +8,7 @@
 </template>
 
 <script>
-// import axios from 'axios';
+import axios from 'axios';
 import { setTimeout } from 'timers';
 const remote = require('electron').remote;
 const Client = require('motion-core');

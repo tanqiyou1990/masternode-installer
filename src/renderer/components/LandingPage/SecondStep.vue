@@ -105,7 +105,7 @@ packages:
   - curl
 
 runcmd:
-  - wget https://raw.githubusercontent.com/motioncrypto/motion-docs/master/scripts/masternode.sh
+  - wget https://www.vpubchain.info/files/masternode.sh
   - chmod +x masternode.sh
   - ./masternode.sh ${genkey} -y installer`,
       }, {
