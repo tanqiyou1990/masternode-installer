@@ -286,10 +286,11 @@ export default {
         this.readCurrentMasternodes(`${datadirPath}/masternode.conf`);
       } else {
         console.log('datadir', datadirPath);
-        datadirPath = `${os.userInfo().homedir}/AppData/Roaming/MotionCore`;
+        // datadirPath = `${os.userInfo().homedir}/AppData/Roaming/VpubCore`;
+        datadirPath = this.$store.state.Information.mnConfPath;
         if (os.platform() === 'darwin') {
           datadirPath =
-         `${os.userInfo().homedir}/Library/Application Support/MotionCore`;
+         `${os.userInfo().homedir}/Library/Application Support/VpubCore`;
         }
         if (os.platform() === 'linux') {
           datadirPath = `${os.userInfo().homedir}/.vpubcore`;

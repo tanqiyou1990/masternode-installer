@@ -53,7 +53,6 @@ export default {
         ['-rpcuser=mn', '-rpcpassword=999000', `-datadir=${this.$store.state.Information.mnConfPath}`],
         (error, stdout, stderr) => {
           if (error) {
-            console.log('Wallet is open');
             // eslint-disable-next-line
             new window.Notification('Your Motion Wallet should be closed', {
               body: 'Please close it and re-run the MasterNode Installer.',
@@ -105,7 +104,7 @@ export default {
           // });
           const registryData = new Registry({
             hive: Registry.HKCU,
-            key: '\\SOFTWARE\\MOTION\\MOTION-QT',
+            key: '\\SOFTWARE\\VPUB\\VPUB-QT',
           });
 
           registryData.values((err, items) => {

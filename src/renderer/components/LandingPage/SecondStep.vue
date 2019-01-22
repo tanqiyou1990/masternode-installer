@@ -172,6 +172,7 @@ runcmd:
       }
     },
     getDigitalOceanAvailableRegions() {
+      console.log(this.$store.state.Information);
       axios.get('https://api.digitalocean.com/v2/regions', {
         headers: {
           Authorization: `Bearer ${this.$store.state.Information.accessToken}`,

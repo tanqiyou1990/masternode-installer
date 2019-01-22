@@ -29,7 +29,7 @@ expressApp.get('/do-auth/:accessToken', (req, res) => {
   mainWindow.webContents.send('do-oauth-reply', req.params.accessToken);
   const html = `<html>
     <head>
-      <title>Motion Masternode Installer</title>
+      <title>Vpub Masternode Installer</title>
       <style>
         body {
           background-color: #00152E;
