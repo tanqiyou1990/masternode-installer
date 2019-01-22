@@ -182,7 +182,6 @@ runcmd:
         this.DOAvailableRegions = response.data.regions
           .filter(region => region.available && region.sizes.includes('s-1vcpu-1gb'))
           .map(region => region.slug);
-
         this.iterateCreateDroplet();
       });
     },
