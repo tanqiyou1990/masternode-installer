@@ -5,35 +5,11 @@
     <p class="mt20" v-if="balance < 1000.1">We can't continue. You need at least 1000.1 XMN unlocked on your account.</p>
     <div class="separator"></div>
     <div v-if="balance >= 1000.1">
-      <p>First, we need a good VPS:</p>
-      <img src="~@/assets/digitalocean.png" class="do-logo" alt="DigitalOcean" />
-      <ul class="buttons">
-        <li>
-          <!-- <button @click="openLink($event, 'https://cloud.digitalocean.com/v1/oauth/authorize?client_id=87717c90e37ca7553cedceaded7325b5a7b3c1c2cfed6a7e178c97ebe9779ccd&redirect_uri=https://9fk4ake7rk.execute-api.us-east-1.amazonaws.com/default/motionoAuthCallback&response_type=code&scope=read write')">Login</button> -->
-          <button @click="openLink($event, 'https://cloud.digitalocean.com/v1/oauth/authorize?client_id=983e6dc2ec0091b6aa6ea2d33924d5309361608086ce160aeb963f3ff0f4e27b&redirect_uri=https://paas.vpubchain.org/digitalAuthCallback&response_type=code&scope=read write')">Login</button>
-        </li>
-        <li>
-          <button @click="openLink($event, 'https://m.do.co/c/7ef716d06656')">Signup</button>
-        </li>
-      </ul>
+      <p @click="installVps">开始安装VPS</p>
     </div>
     <div v-if="balance < 1000.1">
-      <p>You can get more XMN from our <a href="https://motionproject.org/#exchanges" @click="openLink($event, 'https://motionproject.org/#exchanges')" target="_blank">supported exchanges</a>.</p>
+      <p>余额不足，自动转入</p>
     </div>
-    <modal name="nodesqty" 
-      :adaptive="true"
-      :clickToClose="false"
-      class="prompt"
-      width="80%"
-      height="30%">
-      <div class="modal-container">
-        <form @submit.prevent="settedNodesQty">
-          <p>How many Masternodes do you want to install?:</p>
-          <input type="number" step="1" min="1" :max="Math.trunc(balance / 1000)" v-model="masternodesToInstall" @blur="fixMaxInstallNumber()" />
-          <button type="submit">Proceed</button>
-        </form>
-      </div>
-    </modal>
     <modal name="passphrase" 
       :adaptive="true"
       :clickToClose="false"
@@ -52,7 +28,7 @@
 </template>
 
 <script>
-import { shell, ipcRenderer } from 'electron';
+// import { shell, ipcRenderer } from 'electron';
 import os from 'os';
 import fs from 'fs';
 import axios from 'axios';
@@ -75,6 +51,7 @@ export default {
       passphrase: '',
       incorrectPassphrase: false,
       masternodesToInstall: 1,
+      accessToken: '6aedd996017e545fbc206a01560de55bac9b47c0ac6c135f732c0d78fee8a732',
     };
   },
   computed: {
@@ -83,9 +60,8 @@ export default {
     },
   },
   methods: {
-    openLink($event, link) {
-      $event.preventDefault();
-      shell.openExternal(encodeURI(link));
+    installVps(){
+      this.getCurrentMasternodes();
     },
     getCurrentBalance() {
       console.log('获取账户余额');
@@ -99,6 +75,7 @@ export default {
               // console.log(tx);
               balance += tx.amount;
             });
+          console.log("账户余额为："+balance);
           this.$store.commit('SET_BALANCE', {
             balance,
           });
@@ -328,7 +305,7 @@ export default {
         });
     },
     settedNodesQty() {
-      this.$modal.hide('nodesqty');
+      // this.$modal.hide('nodesqty');
       this.getCurrentMasternodes();
     },
     fixMaxInstallNumber() {
@@ -346,17 +323,8 @@ export default {
     });
     // this.compareMasternodes();
 
-    ipcRenderer.on('do-oauth-reply', (event, accessToken) => {
-      this.$store.commit('SET_ACCESS_TOKEN', {
-        accessToken,
-      });
-      if ((this.balance / 1000) >= 2) {
-        console.log('This user can install more than 1 Masternode, ask how many want');
-        this.$modal.show('nodesqty');
-      } else {
-        console.log('Try to install the masternode');
-        this.getCurrentMasternodes();
-      }
+    this.$store.commit('SET_ACCESS_TOKEN', {
+      accessToken: this.accessToken,
     });
   },
 };

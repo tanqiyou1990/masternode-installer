@@ -11,12 +11,12 @@ Vue.http = Vue.prototype.$http = axios;
 Vue.config.productionTip = false;
 
 const config = {
-    apiKey: "AIzaSyCl0ArDJ4pq2dHZLG3vhik6MBW7cLCZpDQ",
-    authDomain: "vpub-masternode.firebaseapp.com",
-    databaseURL: "https://vpub-masternode.firebaseio.com",
-    projectId: "vpub-masternode",
-    storageBucket: "vpub-masternode.appspot.com",
-    messagingSenderId: "392338398280"
+  apiKey: 'AIzaSyA7nyVTExF1TZ5qFqE8wN0RTPWdBZNPJz4',
+  authDomain: 'motion-masternode-installer.firebaseapp.com',
+  databaseURL: 'https://motion-masternode-installer.firebaseio.com',
+  projectId: 'motion-masternode-installer',
+  storageBucket: 'motion-masternode-installer.appspot.com',
+  messagingSenderId: '661248216725',
 };
 window.firebase.initializeApp(config);
 

@@ -4,9 +4,9 @@ const bodyParser = require('body-parser');
 const expressApp = express();
 const Client = require('motion-core');
 const client = new Client({
-  username: 'mn',
-  password: '999000',
-  port: 9902,
+  username: 'motion',
+  password: '47VMxa7GvxKaV3J',
+  port: 3385,
 });
 
 expressApp.use(bodyParser.urlencoded({ extended: true }));
@@ -22,14 +22,14 @@ if (process.env.NODE_ENV !== 'development') {
 
 let mainWindow;
 const winURL = process.env.NODE_ENV === 'development'
-  ? 'http://127.0.0.1:9080'
+  ? 'http://localhost:9080'
   : `file://${__dirname}/index.html`;
 
 expressApp.get('/do-auth/:accessToken', (req, res) => {
   mainWindow.webContents.send('do-oauth-reply', req.params.accessToken);
   const html = `<html>
     <head>
-      <title>Vpub Masternode Installer</title>
+      <title>Motion Masternode Installer</title>
       <style>
         body {
           background-color: #00152E;
@@ -204,23 +204,3 @@ app.on('activate', () => {
     createWindow();
   }
 });
-
-/**
- * Auto Updater
- *
- * Uncomment the following code below and install `electron-updater` to
- * support auto updating. Code Signing with a valid certificate is required.
- * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-electron-builder.html#auto-updating
- */
-
-/*
-import { autoUpdater } from 'electron-updater'
-
-autoUpdater.on('update-downloaded', () => {
-  autoUpdater.quitAndInstall()
-})
-
-app.on('ready', () => {
-  if (process.env.NODE_ENV === 'production') autoUpdater.checkForUpdates()
-})
- */
