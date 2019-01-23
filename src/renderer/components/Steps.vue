@@ -2,17 +2,17 @@
   <div class="steps">
     <div class="step-container active">
       <div class="globe">1</div>
-      Prepare
+      准备
     </div>
     <div class="separation-line"></div>
     <div class="step-container" v-bind:class="{ active: currentStep>=2 }">
       <div class="globe">2</div>
-      Install
+      安装
     </div>
     <div class="separation-line"></div>
     <div class="step-container" v-bind:class="{ active: currentStep>=3 }">
       <div class="globe">3</div>
-      Activate
+      激活
     </div>
   </div>
 </template>

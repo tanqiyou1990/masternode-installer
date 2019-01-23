@@ -1,7 +1,7 @@
 <template>
   <div id="wrapper">
-    <img id="logo" src="~@/assets/logo.svg" alt="Motion">
-    <h1 class="title">Masternode Installer</h1>
+    <img id="logo" src="~@/assets/LOGO.png" alt="Vpub">
+    <h1 class="title">维公链主节点安装程序</h1>
     <main>
       <div class="steps-content">
         <zero-step v-if="currentStep === 0 || !currentStep" />
@@ -28,14 +28,26 @@ import ThirdStep from './LandingPage/ThirdStep';
 import Steps from './Steps';
 const remote = require('electron').remote;
 
+const Client = require('motion-core');
+const client = new Client({
+  username: 'mn',
+  password: '999000',
+  port: 9902,
+});
+
 export default {
+  data(){
+    return {
+      closeTime:0
+    };
+  },
   name: 'landing-page',
   components: {
     ZeroStep,
     FirstStep,
     SecondStep,
     ThirdStep,
-    Steps,
+    Steps
   },
   computed: {
     balance() {
@@ -47,6 +59,7 @@ export default {
   },
   methods: {
     runDaemon() {
+      
       if (this.$store.state.Information.mnConfPath) {
         execFile(`${path.join(__static, `/daemon/${os.platform()}/vpubd`)
           .replace('app.asar', 'app.asar.unpacked')}`,
@@ -54,13 +67,12 @@ export default {
         (error, stdout, stderr) => {
           if (error) {
             // eslint-disable-next-line
-            new window.Notification('Your Motion Wallet should be closed', {
-              body: 'Please close it and re-run the MasterNode Installer.',
-            });
-
+            // new window.Notification('即将关闭你的钱包程序', {
+            //   body: '检测到运行中的钱包程序，系统正尝试关闭钱包程序。',
+            // });
             setTimeout(() => {
-              const window = remote.getCurrentWindow();
-              window.close();
+              //尝试关闭客户端
+              this.closeDaemon();
             }, 10000);
           }
           console.log(stderr);
@@ -68,10 +80,26 @@ export default {
         });
       } else {
         // eslint-disable-next-line
-        new window.Notification('You need to have Motion Wallet installed', {
-          body: 'Please install your Motion wallet first.',
+        new window.Notification('未检测到维公链核心程序', {
+          body: '请前往维公链官网下载安装程序，安装完成之后之后再次运行本程序.',
         });
       }
+    },
+    closeDaemon(){
+      client
+        .stop()
+        .then(() => {
+          console.log("核心程序已退出!");
+          this.runDaemon();
+        }).catch(() =>{
+            new window.Notification('请关闭钱包程序', {
+              body: '检测到运行中的钱包程序，请关闭钱包程序后，重新运行主节点安装程序。',
+            });
+            setTimeout(() => {
+              const window = remote.getCurrentWindow();
+              window.close();
+            }, 10000);
+        });
     },
   },
   mounted() {
@@ -95,13 +123,6 @@ export default {
             this.runDaemon();
           }
         } else if (os.platform() === 'win32') {
-          // regedit.list('HKCU\\SOFTWARE\\MOTION\\MOTION-QT', (err, registryData) => {
-          //   if (err) throw err;
-
-          //   this.$store.commit('SET_MNCONFPATH', {
-          //     mnConfPath: registryData[Object.keys(registryData)[0]].values.strDataDir.value,
-          //   });
-          // });
           const registryData = new Registry({
             hive: Registry.HKCU,
             key: '\\SOFTWARE\\VPUB\\VPUB-QT',

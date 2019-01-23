@@ -1,15 +1,19 @@
 <template>
   <div id="first-step">
-    <p>Currently you have: <span class="amount">{{Math.trunc(balance)}}</span>XMN</p>
-    <p class="mt20" v-if="balance >= 1000.1">We can continue. <span v-if="(balance / 1000) >= 2"><b>You can install up to {{ Math.trunc(balance / 1000) }} Masternodes!</b></span></p>
-    <p class="mt20" v-if="balance < 1000.1">We can't continue. You need at least 1000.1 XMN unlocked on your account.</p>
+    <p>当前可用余额: <span class="amount">{{Math.trunc(balance)}}</span> VP</p>
+    <p class="mt20" v-if="balance >= 1000.1">环境检测完毕. 
+      <!-- <span v-if="(balance / 1000) >= 2">
+        <b>You can install up to {{ Math.trunc(balance / 1000) }} Masternodes!</b>
+      </span> -->
+    </p>
+    <p class="mt20" v-if="balance < 1000.1">余额不足.</p>
     <div class="separator"></div>
     <div v-if="balance >= 1000.1">
-      <p @click="installVps">开始安装VPS</p>
+      <button @click="installVps">开始安装</button>
     </div>
-    <div v-if="balance < 1000.1">
+    <!-- <div v-if="balance < 1000.1">
       <p>余额不足，自动转入</p>
-    </div>
+    </div> -->
     <modal name="passphrase" 
       :adaptive="true"
       :clickToClose="false"
@@ -37,7 +41,6 @@ const Client = require('motion-core');
 const client = new Client({
   username: 'mn',
   password: '999000',
-  // port: 9902,
   port: 9902,
 });
 
