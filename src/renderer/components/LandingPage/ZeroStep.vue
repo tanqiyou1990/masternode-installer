@@ -30,6 +30,11 @@ export default {
       axios.get('https://pl.vpubchain.net/api/getblockcount')
         .then((response) => {
           this.blockCount = Number(response.data);
+        }).catch((err) => {
+          console.log("获取区块高度失败，5s重新获取");
+          setTimeout(() => {
+            this.getBlockCount();
+          }, 5000);          
         });
     },
     checkIfWalletIsLoaded() {
@@ -66,14 +71,14 @@ export default {
             console.log(error);
             if (error.code === 401) {
               // eslint-disable-next-line
-              new window.Notification('Your Motion Wallet should be closed', {
-                body: 'Please close it and re-run the MasterNode Installer.',
+              new window.Notification('请关闭维公链客户端程序', {
+                body: '程序检测到维公链客户端正在运行，请关闭之后重新打开主节点安装程序。',
               });
 
               setTimeout(() => {
                 const window = remote.getCurrentWindow();
                 window.close();
-              }, 10000);
+              }, 20000);
             } else {
               setTimeout(() => {
                 this.checkIfWalletIsAlreadyRunning();

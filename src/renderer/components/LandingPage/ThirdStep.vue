@@ -1,13 +1,14 @@
 <template>
   <div id="step-three">
-    <!-- <button @click="activateMasterNode()" :disabled="loading || finished">Activate your MasterNode</button>
+    <button @click="activateMasterNode()" :disabled="loading||finished">激活主节点</button>
     <div class="loading" v-if="loading">
       <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
-    </div> -->
-    <h2>Your Masternode(s) was setup successfully</h2>
-    <p>Now just close installer and start alias from your wallet on Masternodes tab.</p>
+    </div>
+    <!-- <h2>主节点安装成功</h2>
+    <p>点击关闭主节点安装程序，然后打开钱包，在Masternodes页签启动主节点.</p> -->
+    <p v-if="finished">主节点激活成功.</p>
     <div class="finished">
-      <button @click="close()" v-if="finished" :disabled="!finished">Close</button>
+      <button @click="close()" v-if="finished" :disabled="!finished">关闭</button>
     </div>
   </div>
 </template>
@@ -27,8 +28,8 @@ const client = new Client({
 export default {
   data() {
     return {
-      // loading: false,
-      finished: true,
+      loading: false,
+      finished: false,
     };
   },
   computed: {
@@ -42,21 +43,29 @@ export default {
   methods: {
     activateMasterNode() {
       client
-        .masternode('start-alias', this.mnName)
+        .masternode('start-alias', `${this.mnName}-0`)
         .then((response) => {
-          if (response.errorMessage === 'Sync in progress. Must wait until sync is complete to start Masternode') {
+          console.log("start-alias");
+          console.log(response);
+          if (response.errorMessage) {
+
+            new window.Notification('数据同步中', {
+                body: '客户端区块数据同步中，请稍后.',
+              });
             this.loading = true;
             setTimeout(() => {
               this.activateMasterNode();
-            }, 5000);
+            }, 10000);
           } else {
             this.loading = false;
-            if (response.result === 'successful') {
+            if (response.result == 'successful') {
               this.finished = true;
+              this.closeDaemon();
               // eslint-disable-next-line
-              new window.Notification('Masternode Started', {
-                body: 'Now just wait and enjoy your rewards.',
+              new window.Notification('主节点激活成功', {
+                body: '现在您可以重启维公链客户端等待收益吧',
               });
+
             }
           }
         })
@@ -74,23 +83,30 @@ export default {
       const window = remote.getCurrentWindow();
       window.close();
     },
+    closeDaemon(){
+      client
+        .stop()
+        .then(() => {
+          console.log("核心程序已退出!");
+        });
+    },
     restartDaemon() {
       client
         .stop()
         .then(() => {
           setTimeout(() => {
-            execFile(`${path.join(__static, `/daemon/${os.platform()}/vpubd`).replace('app.asar', 'app.asar.unpacked')}`, ['-daemon', '-rpcuser=mn', '-rpcpassword=999000']);
+            execFile(`${path.join(__static, `/daemon/${os.platform()}/vpubd`).replace('app.asar', 'app.asar.unpacked')}`, ['-daemon', '-rpcuser=mn', '-rpcpassword=999000',`-datadir=${this.$store.state.Information.mnConfPath}`]);
           }, 1000);
         });
     },
   },
   mounted() {
     // eslint-disable-next-line
-    new window.Notification('Masternode Installed Successfully', {
-      body: 'Now you only need to activate it.',
+    new window.Notification('主节点安装成功', {
+      body: '程序开始重启维公链客户端后台程序.',
     });
 
-    // this.restartDaemon();
+    this.restartDaemon();
   },
 };
 </script>

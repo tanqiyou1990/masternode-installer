@@ -50,7 +50,7 @@ export default {
       xmnaddresses: [],
       passphrase: '',
       incorrectPassphrase: false,
-      masternodesToInstall: 1,
+      masternodesToInstall: 1,    //暂时开放一次只能生成一个MsterNode
       accessToken: '6aedd996017e545fbc206a01560de55bac9b47c0ac6c135f732c0d78fee8a732',
     };
   },
@@ -131,6 +131,9 @@ export default {
         }
       }).catch((error) => {
         console.error('Error getting the masternode outputs', error);
+        setTimeout(() => {
+          this.compareMasternodes();
+        }, 5000);
       });
     },
     comparer(otherArray) {
@@ -250,7 +253,7 @@ export default {
             };
           });
 
-        console.log('current masternodes', this.currentMasternodes);
+        console.log('current masternodes:', this.currentMasternodes);
 
         this.compareMasternodes();
       });
