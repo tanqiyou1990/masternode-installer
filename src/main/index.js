@@ -2,11 +2,11 @@ import { app, BrowserWindow, Menu } from 'electron' // eslint-disable-line
 const express = require('express');
 const bodyParser = require('body-parser');
 const expressApp = express();
-const Client = require('motion-core');
+const Client = require('@vpubevo/vpub-core');
 const client = new Client({
-  username: 'motion',
-  password: '47VMxa7GvxKaV3J',
-  port: 3385,
+  username: 'mn',
+  password: '999000',
+  port: 9902,
 });
 
 expressApp.use(bodyParser.urlencoded({ extended: true }));
@@ -29,7 +29,7 @@ expressApp.get('/do-auth/:accessToken', (req, res) => {
   mainWindow.webContents.send('do-oauth-reply', req.params.accessToken);
   const html = `<html>
     <head>
-      <title>Motion Masternode Installer</title>
+      <title>Vpub Masternode Installer</title>
       <style>
         body {
           background-color: #00152E;

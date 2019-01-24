@@ -28,7 +28,7 @@ import ThirdStep from './LandingPage/ThirdStep';
 import Steps from './Steps';
 const remote = require('electron').remote;
 
-const Client = require('motion-core');
+const Client = require('@vpubevo/vpub-core');
 const client = new Client({
   username: 'mn',
   password: '999000',
@@ -110,8 +110,8 @@ export default {
         }
 
         if (os.platform() === 'darwin') {
-          if (existsSync(`${os.userInfo().homedir}/Library/Preferences/org.motion.Motion-Qt.plist`)) {
-            bplist.parseFile(`${os.userInfo().homedir}/Library/Preferences/org.motion.Motion-Qt.plist`, (err, plistData) => {
+          if (existsSync(`${os.userInfo().homedir}/Library/Preferences/org.vpub.Vpub-Qt.plist`)) {
+            bplist.parseFile(`${os.userInfo().homedir}/Library/Preferences/org.vpub.Vpub-Qt.plist`, (err, plistData) => {
               if (err) throw err;
 
               this.$store.commit('SET_MNCONFPATH', {

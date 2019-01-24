@@ -1,6 +1,6 @@
-# motion-mn-installer
+# vpub-mn-installer
 
-> MotionProject Masternode Installer
+> VpubProject Masternode Installer
 
 #### Build Setup
 

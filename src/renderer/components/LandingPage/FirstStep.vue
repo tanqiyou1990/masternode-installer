@@ -37,7 +37,7 @@ import os from 'os';
 import fs from 'fs';
 import axios from 'axios';
 // import path from 'path';
-const Client = require('motion-core');
+const Client = require('@vpubevo/vpub-core');
 const client = new Client({
   username: 'mn',
   password: '999000',
