@@ -8,16 +8,26 @@
       <button @click="userLogin" class="btn btn-primary btn-block btn-large">登录</button>
     </div>
 
-    <div v-if="isLogin" id="second-step">
-      <h1>数据同步中...</h1>
+    <div v-if="(!isGetNodes)&&isLogin" class="form-group">
+				<label for="state">选择一个待安装的主节点:</label>
+				<select v-model="choseNode" name="state" id="state" class="state pickout" placeholder="选择一个主节点">
+					<option v-for="node in myNodes" :key="node.id" :value="node.id">{{node.nodeName}}</option>
+				</select>
+        <button @click="beginInstall" class="btn btn-primary btn-block btn-large">开始安装</button>
+			</div>
+
+    <div v-if="loadding" id="second-step">
+      <h3>{{loadmsg}}</h3>
       <div class="loading">
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
       </div>
-    </div>
+    </div>  
+
   </div>
 </template>
 
 <script>
+import qs from 'qs';
 import axios from 'axios';
 import { setTimeout } from 'timers';
 const remote = require('electron').remote;
@@ -33,11 +43,44 @@ export default {
     return {
       blockCount: 0,
       isLogin:false,
+      isGetNodes:false,
+      choseNode:null,
+      myNodes:[],
       userName:'',
-      passWd:''
+      passWd:'',
+      loadding:false,
+      loadmsg:''
     };
   },
   methods: {
+    beginInstall(){
+      console.log("选择的节点id:"+this.choseNode);
+    },
+    //获取待安装列表
+    getMyNodes(){
+      this.loadding = true;
+      this.loadmsg = "加载主节点信息...";
+      axios.get('http://localhost:4001/bsMasternode/myNodes/0',{
+        headers: {
+          Authorization: `Bearer ${this.$store.state.User.accessToken}`
+        }})
+        .then((response) => {
+          this.loadding = false;
+          this.myNodes = response.data.data;
+          if(!this.myNodes.length){
+            new window.Notification('提示', {
+              body: '未找到待安装的主节点记录。',
+            });
+          }
+          console.log(response);
+        }).catch((err) => {
+          console.log(err)
+          this.loadding = false;
+          new window.Notification('错误', {
+            body: '获取待安装主节点信息出错。',
+          });
+        });
+    },
     userLogin(){
       if(this.userName==''||this.passWd==''){
         new window.Notification('提示', {
@@ -45,23 +88,51 @@ export default {
         });
         return;
       }
-
-      axios.post('https://paas.vpubchain.org/user/login',{
-        userName:this.userName,
-        passWd:this.passWd
+      this.loadding = true;
+      this.loadmsg = "正在登陆...";
+      axios.post('http://localhost:4001/oauth/token',qs.stringify({
+        grant_type:"password",
+        scope:"server",
+        username:this.userName,
+        password:this.passWd
+      }),{
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        auth: {
+          username: 'vp',
+          password: 'vp',
+        },
       })
       .then((response) => {
-        console.log("登录成功");
         this.$store.commit('SET_USERTOKEN', {
-          accessToken: "123456789",
+          accessToken: response.data.access_token,
         });      
         console.log("用户TOKEN:"+this.$store.state.User.accessToken);
         this.isLogin=true;
-        this.checkIfWalletIsAlreadyRunning();
+        this.loadding = false;
+        // this.checkIfWalletIsLoaded();
+        new window.Notification('提示', {
+          body: "登陆成功",
+        });    
+        this.getMyNodes();    
       }).catch((err) => {
-        new window.Notification('登录遇到异常', {
-          body: err,
-        });
+        if(err.response){
+          if(err.response.data.error=="unauthorized"){
+            new window.Notification('提示', {
+              body: "用户名或者密码错误",
+            });
+          }else{
+            new window.Notification('提示', {
+              body: err,
+            });          
+          }
+        }else{
+          new window.Notification('提示', {
+            body: err,
+          });  
+        }
+        this.loadding = false;
         return;
       });
       
@@ -69,6 +140,7 @@ export default {
     getBlockCount() {
       axios.get('https://pl.vpubchain.net/api/getblockcount')
         .then((response) => {
+          console.log("当前区块高度:"+response.data);
           this.blockCount = Number(response.data);
         }).catch((err) => {
           console.log("获取区块高度失败，5s重新获取");
@@ -81,6 +153,8 @@ export default {
       client
         .getBlockCount()
         .then((response) => {
+          console.log("本地钱包数据:");
+          console.log(response);
           if (response >= this.blockCount) {
             console.log('synced');
             this.$store.commit('SET_STEP', {
@@ -100,13 +174,14 @@ export default {
     },
     //获取本地钱包信息
     checkIfWalletIsAlreadyRunning() {
+      console.log("获取本地前钱包");
       setTimeout(() => {
         client
           .getInfo()
           .then((response) => {
             console.log(response);
             this.getBlockCount();
-            this.checkIfWalletIsLoaded();
+            
           })
           .catch((error) => {
             console.log(error);
@@ -126,11 +201,12 @@ export default {
               }, 2000);
             }
           });
-      }, 10000);
+      }, 1000);
     },
   },
   mounted() {
-    // this.checkIfWalletIsAlreadyRunning();
+    console.log("00加载");
+    this.checkIfWalletIsAlreadyRunning();
   },
 };
 </script>
@@ -183,5 +259,42 @@ export default {
 .btn-primary:hover, .btn-primary:active, .btn-primary.active, .btn-primary.disabled, .btn-primary[disabled] { filter: none; background-color: #4a77d4; }
 .btn-block { width: 100%; display:block; }
 
+
+	.form-group {
+		width:100%;
+		float:left;
+		margin:5px 0;
+	}
+
+	label{
+		margin-bottom:10px;
+		float:left;			
+	}
+
+	.field-input, select{
+		/* width:calc(100% - 20px);
+		float:left;
+		padding:10px;
+		font-family:inherit; */
+
+    width: 100%;
+    margin-bottom: 10px;
+    background: rgba(0,0,0,0.3);
+    border: none;
+    outline: none;
+    padding: 10px;
+    font-size: 13px;
+    color: #fff;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+    border: 1px solid rgba(0,0,0,0.3);
+    border-radius: 4px;
+    box-shadow: inset 0 -5px 45px rgba(100,100,100,0.2), 0 1px 1px rgba(255,255,255,0.2);
+    -webkit-transition: box-shadow .5s ease;
+    -moz-transition: box-shadow .5s ease;
+    -o-transition: box-shadow .5s ease;
+    -ms-transition: box-shadow .5s ease;
+    transition: box-shadow .5s ease;
+    line-height: normal;
+	}
 
 </style>

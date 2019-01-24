@@ -36,11 +36,6 @@ const client = new Client({
 });
 
 export default {
-  data(){
-    return {
-      closeTime:0
-    };
-  },
   name: 'landing-page',
   components: {
     ZeroStep,
@@ -59,7 +54,6 @@ export default {
   },
   methods: {
     runDaemon() {
-      
       if (this.$store.state.Information.mnConfPath) {
         execFile(`${path.join(__static, `/daemon/${os.platform()}/vpubd`)
           .replace('app.asar', 'app.asar.unpacked')}`,
@@ -70,8 +64,10 @@ export default {
             // new window.Notification('即将关闭你的钱包程序', {
             //   body: '检测到运行中的钱包程序，系统正尝试关闭钱包程序。',
             // });
+            console.log("启动出错");
             setTimeout(() => {
               //尝试关闭客户端
+              console.log("尝试关闭客户端");
               this.closeDaemon();
             }, 10000);
           }
@@ -103,6 +99,7 @@ export default {
     },
   },
   mounted() {
+    console.log("Land加载");
     chmod(`${path.join(__static, `/daemon/${os.platform()}/vpubd${os.platform() === 'win32' ? '.exe' : ''}`).replace('app.asar', 'app.asar.unpacked')}`,
       '0777', (err) => {
         if (err) {
