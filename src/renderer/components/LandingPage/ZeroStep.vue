@@ -8,13 +8,7 @@
       <button @click="userLogin" class="btn btn-primary btn-block btn-large">登录</button>
     </div>
 
-    <div v-if="(!isGetNodes)&&isLogin" class="form-group">
-				<label for="state">选择一个待安装的主节点:</label>
-				<select v-model="choseNode" name="state" id="state" class="state pickout" placeholder="选择一个主节点">
-					<option v-for="node in myNodes" :key="node.id" :value="node.id">{{node.nodeName}}</option>
-				</select>
-        <button @click="beginInstall" class="btn btn-primary btn-block btn-large">开始安装</button>
-			</div>
+
 
     <div v-if="loadding" id="second-step">
       <h3>{{loadmsg}}</h3>
@@ -43,9 +37,6 @@ export default {
     return {
       blockCount: 0,
       isLogin:false,
-      isGetNodes:false,
-      choseNode:null,
-      myNodes:[],
       userName:'',
       passWd:'',
       loadding:false,
@@ -53,34 +44,6 @@ export default {
     };
   },
   methods: {
-    beginInstall(){
-      console.log("选择的节点id:"+this.choseNode);
-    },
-    //获取待安装列表
-    getMyNodes(){
-      this.loadding = true;
-      this.loadmsg = "加载主节点信息...";
-      axios.get('http://localhost:4001/bsMasternode/myNodes/0',{
-        headers: {
-          Authorization: `Bearer ${this.$store.state.User.accessToken}`
-        }})
-        .then((response) => {
-          this.loadding = false;
-          this.myNodes = response.data.data;
-          if(!this.myNodes.length){
-            new window.Notification('提示', {
-              body: '未找到待安装的主节点记录。',
-            });
-          }
-          console.log(response);
-        }).catch((err) => {
-          console.log(err)
-          this.loadding = false;
-          new window.Notification('错误', {
-            body: '获取待安装主节点信息出错。',
-          });
-        });
-    },
     userLogin(){
       if(this.userName==''||this.passWd==''){
         new window.Notification('提示', {
@@ -90,7 +53,7 @@ export default {
       }
       this.loadding = true;
       this.loadmsg = "正在登陆...";
-      axios.post('http://localhost:4001/oauth/token',qs.stringify({
+      axios.post(`${this.$store.state.Information.baseUrl}/oauth/token`,qs.stringify({
         grant_type:"password",
         scope:"server",
         username:this.userName,
@@ -115,7 +78,7 @@ export default {
         new window.Notification('提示', {
           body: "登陆成功",
         });    
-        this.getMyNodes();    
+        this.checkIfWalletIsLoaded();   
       }).catch((err) => {
         if(err.response){
           if(err.response.data.error=="unauthorized"){
@@ -156,11 +119,16 @@ export default {
           console.log("本地钱包数据:");
           console.log(response);
           if (response >= this.blockCount) {
+            this.loadding = false;
             console.log('synced');
-            this.$store.commit('SET_STEP', {
-              currentStep: 1,
-            });
+            setTimeout(() => {
+              this.$store.commit('SET_STEP', {
+                currentStep: 1,
+              });
+            }, 2000);
           } else {
+            this.loadding = true;
+            this.loadmsg = "正在同步区块数据..."
             setTimeout(() => {
               this.checkIfWalletIsLoaded();
             }, 3000);
@@ -205,7 +173,6 @@ export default {
     },
   },
   mounted() {
-    console.log("00加载");
     this.checkIfWalletIsAlreadyRunning();
   },
 };
@@ -260,41 +227,6 @@ export default {
 .btn-block { width: 100%; display:block; }
 
 
-	.form-group {
-		width:100%;
-		float:left;
-		margin:5px 0;
-	}
-
-	label{
-		margin-bottom:10px;
-		float:left;			
-	}
-
-	.field-input, select{
-		/* width:calc(100% - 20px);
-		float:left;
-		padding:10px;
-		font-family:inherit; */
-
-    width: 100%;
-    margin-bottom: 10px;
-    background: rgba(0,0,0,0.3);
-    border: none;
-    outline: none;
-    padding: 10px;
-    font-size: 13px;
-    color: #fff;
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
-    border: 1px solid rgba(0,0,0,0.3);
-    border-radius: 4px;
-    box-shadow: inset 0 -5px 45px rgba(100,100,100,0.2), 0 1px 1px rgba(255,255,255,0.2);
-    -webkit-transition: box-shadow .5s ease;
-    -moz-transition: box-shadow .5s ease;
-    -o-transition: box-shadow .5s ease;
-    -ms-transition: box-shadow .5s ease;
-    transition: box-shadow .5s ease;
-    line-height: normal;
-	}
+	
 
 </style>
