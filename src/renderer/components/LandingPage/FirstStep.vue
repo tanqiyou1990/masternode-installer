@@ -7,6 +7,7 @@
     <div v-if="!isBegin" class="form-group">
       <label for="state">选择一个待安装的主节点:</label>
       <select v-model="choseNode" name="state" id="state" class="state pickout" placeholder="选择一个主节点">
+        <option value="99" selected>---请选择---</option>
         <option v-for="(node,index) in myNodes" :key="index" :value="index">{{node.nodeName}}</option>
       </select>
       <button @click="installVps">开始安装</button>
@@ -49,6 +50,8 @@ const client = new Client({
 export default {
   data() {
     return {
+      mnCodeName:null,
+      mnName:null,
       isBegin:false,
       loadding:false,
       loadmsg:'',
@@ -72,7 +75,7 @@ export default {
     //向账户充值1000VP
     sendVP(){
       client
-        .getNewAddress("MN启动金-"+this.mnName)
+        .getNewAddress("MN启动金-"+this.$store.state.Information.mnId)
           .then((address) => {
             this.loadding=true;
             this.loadmsg="正在接收平台启动金，请等待..."
@@ -98,8 +101,9 @@ export default {
                       console.log("余额足够，提前安装");
                       this.getCurrentMasternodes();
                     }, 3000); 
+                  }else{
+                    this.watchTransinfo(response.data.data.txHash);
                   }
-                  this.watchTransinfo(response.data.data.txHash);
                 }else{
                   new window.Notification('错误', {
                     body: '接收平台启动金失败：'+response.data.msg,
@@ -134,6 +138,7 @@ export default {
               body: '未找到待安装的主节点记录。',
             });
           }
+          this.choseNode=99;//默认选项
           console.log(response);
         }).catch((err) => {
           console.log(err)
@@ -201,7 +206,7 @@ export default {
         });
     },
     installVps(){
-      if(this.choseNode==''||this.choseNode==null){
+      if(this.choseNode=='99'||this.choseNode==99){
         new window.Notification('提示', {
           body: '请选择需要安装的主节点。',
         });
@@ -213,6 +218,11 @@ export default {
       this.$store.commit('SET_MNNAME', {
         mnName: this.myNodes[this.choseNode].nodeName,
       }); 
+      //设置一个主节点CODE，不能有汉字
+      this.mnCodeName = `MN${Math.round(new Date().getTime() / 1000)}`;
+      this.$store.commit('SET_MNCODENAME', {
+        mnCodeName: this.mnCodeName,
+      });
       this.isBegin=true;
       //开始转账
       this.sendVP();
@@ -315,7 +325,7 @@ export default {
         // Get firsts available outputs
         const output = this.availableMasternodesToInstall.slice(0,1);
         this.$store.commit('SET_OUTPUT', {
-          output,
+          output:output[0],
         });
         // Generate Privkeys
         client

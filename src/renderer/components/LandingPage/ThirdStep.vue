@@ -1,12 +1,13 @@
 <template>
   <div id="step-three">
-    <button @click="activateMasterNode()" :disabled="loading||finished">激活主节点</button>
+    <button @click="activateMasterNode()" v-if="!(loading||finished)">激活主节点</button>
     <div class="loading" v-if="loading">
+      <h3>{{loadmsg}}</h3>
       <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
     </div>
     <!-- <h2>主节点安装成功</h2>
     <p>点击关闭主节点安装程序，然后打开钱包，在Masternodes页签启动主节点.</p> -->
-    <p v-if="finished">主节点激活成功.</p>
+    <h3 v-if="finished">主节点激活成功!</h3>
     <div class="finished">
       <button @click="close()" v-if="finished" :disabled="!finished">关闭</button>
     </div>
@@ -30,11 +31,12 @@ export default {
     return {
       loading: false,
       finished: false,
+      loadmsg: '',
     };
   },
   computed: {
-    mnName() {
-      return this.$store.state.Information.mnName;
+    mnCodeName() {
+      return this.$store.state.Information.mnCodeName;
     },
     passphrase() {
       return this.$store.state.Wallet.passphrase;
@@ -43,16 +45,12 @@ export default {
   methods: {
     activateMasterNode() {
       client
-        .masternode('start-alias', `${this.mnName}-0`)
+        .masternode('start-alias', `${this.mnCodeName}`)
         .then((response) => {
           console.log("start-alias");
-          console.log(response);
           if (response.errorMessage) {
-
-            new window.Notification('数据同步中', {
-                body: '客户端区块数据同步中，请稍后.',
-              });
             this.loading = true;
+            this.loadmsg = '区块数据同步中...'
             setTimeout(() => {
               this.activateMasterNode();
             }, 10000);
@@ -62,8 +60,8 @@ export default {
               this.finished = true;
               this.closeDaemon();
               // eslint-disable-next-line
-              new window.Notification('主节点激活成功', {
-                body: '现在您可以重启维公链客户端等待收益吧',
+              new window.Notification('提示', {
+                body: '主节点已激活成功，您可以重新打开电脑的钱包客户端查看主节点运行情况！',
               });
 
             }

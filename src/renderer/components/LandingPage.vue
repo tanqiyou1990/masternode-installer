@@ -19,6 +19,7 @@ import { execFile } from 'child_process';
 import path from 'path';
 import os from 'os';
 import { chmod, existsSync } from 'fs';
+import axios from 'axios';
 import Registry from 'winreg';
 import bplist from 'bplist-parser';
 import ZeroStep from './LandingPage/ZeroStep';
@@ -145,6 +146,12 @@ export default {
         }
       });
   },
+  destroyed(){
+    axios.delete(`${this.$store.state.Information.baseUrl}/user/removeToken`)
+      .then((response) => {
+        console.log("注销");
+      });
+  }
 };
 </script>
 
