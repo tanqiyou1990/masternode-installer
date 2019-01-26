@@ -18,6 +18,7 @@
 import { execFile } from 'child_process';
 import path from 'path';
 import os from 'os';
+import axios from 'axios';
 const remote = require('electron').remote;
 const Client = require('@vpubevo/vpub-core');
 const client = new Client({
@@ -57,6 +58,8 @@ export default {
           } else {
             this.loading = false;
             if (response.result == 'successful') {
+              //更新主节点状态
+              this.updateMnStaus("1");
               this.finished = true;
               this.closeDaemon();
               // eslint-disable-next-line
@@ -95,6 +98,25 @@ export default {
           setTimeout(() => {
             execFile(`${path.join(__static, `/daemon/${os.platform()}/vpubd`).replace('app.asar', 'app.asar.unpacked')}`, ['-daemon', '-rpcuser=mn', '-rpcpassword=999000',`-datadir=${this.$store.state.Information.mnConfPath}`]);
           }, 1000);
+        });
+    },
+    updateMnStaus(staus){
+      console.log("开始更新主节点状态!");
+      let param = {
+        id:this.$store.state.Information.mnId,
+        status:staus
+      };
+      axios.post(`${this.$store.state.Information.baseUrl}/bsMasternode/update`,param,{
+        headers: {
+          Authorization: `Bearer ${this.$store.state.User.accessToken}`
+        }})
+        .then((response) => {
+          if(response.data.success){
+            console.log("更新主节点状态成功!");
+          }
+        })
+        .catch((err) => {
+          console.log("更新主节点状态失败!");
         });
     },
   },

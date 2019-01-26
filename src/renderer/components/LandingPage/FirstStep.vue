@@ -206,6 +206,12 @@ export default {
         });
     },
     installVps(){
+      if(this.myNodes==null||this.myNodes.length==0){
+        new window.Notification('提示', {
+          body: '您尚未购买主节点，请前往平台官网购买!',
+        });
+        return;
+      }
       if(this.choseNode=='99'||this.choseNode==99){
         new window.Notification('提示', {
           body: '请选择需要安装的主节点。',

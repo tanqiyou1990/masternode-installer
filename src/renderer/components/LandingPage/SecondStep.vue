@@ -117,7 +117,10 @@ export default {
                       }, 5000);
                     });
                 } else if (this.dropletIp.currentVpsStep === 12) {
-                  axios.get('https://paas.vpubchain.org/bsMasternode/getCounter?mid='+this.mnId)
+                  axios.get('https://paas.vpubchain.org/bsMasternode/getCounter?mid='+this.mnId,{
+                    headers: {
+                      Authorization: `Bearer ${this.$store.state.User.accessToken}`
+                    }})
                     .then((response) => {
                       let currentCount = Number(response.data);
                       this.dropletIp.currentStatus = `区块同步中,这可能需要一点时间... 同步进度 ${currentCount} / ${this.totalBlocks}.`;
