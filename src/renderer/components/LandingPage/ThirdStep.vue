@@ -44,6 +44,106 @@ export default {
     },
   },
   methods: {
+    //通过ADDNODE向主节点发送包
+    addNode(ip){
+      axios.post('http://127.0.0.1:9902/', {
+          jsonrpc: '1.0',
+          method: 'addnode',
+          params: [ip,"onetry"],
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          auth: {
+            username: 'mn',
+            password: '999000',
+          },
+        })
+        .then((response) => {
+          console.log("Addnode result:"+response);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    //监控主节点运行状态
+    watchMnStatus(codeName){
+      axios.post('http://127.0.0.1:9902/', {
+          jsonrpc: '1.0',
+          method: 'masternode',
+          params: ['list-conf'],
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          auth: {
+            username: 'mn',
+            password: '999000',
+          },
+        })
+        .then((data) => {
+          let mnStr = data.request.responseText;
+          mnStr = mnStr.replace('{"masternode":','['); 
+          mnStr = mnStr.replace('},"error"','],"error"'); 
+          mnStr = mnStr.replace(/"masternode":/g,''); 
+          let mnJson = JSON.parse(mnStr); 
+          console.log("JSON:",mnJson);
+
+          let mnList = mnJson.result;
+          for( let i=0;i<mnList.length;i++){
+            let mnConf = mnList[i];
+            if(mnConf.alias==codeName){
+              console.log("当前状态:"+mnConf.status);
+              if(mnConf.status=='ENABLED'){
+                this.loading = false;
+                //更新主节点状态
+                this.updateMnStaus("1");
+                this.finished = true;
+                this.closeDaemon();
+                // eslint-disable-next-line
+                new window.Notification('提示', {
+                  body: '主节点已激活成功，您可以重新打开电脑的钱包客户端查看主节点运行情况！',
+                });
+              }else if(mnConf.status=='PRE_ENABLED'){
+                //主节点状态为启动前检查
+                this.loadmsg="请等待主节点启动...当前状态为 "+mnConf.status;
+                let ip = mnConf.address;
+                ip=ip.replace(":9900","");
+                this.addNode(ip);
+                setTimeout(() => {
+                  this.watchMnStatus(codeName);
+                }, 5000);
+              }else if(mnConf.status=='NEW_START_REQUIRED'){
+                this.loadmsg="请等待主节点启动...当前状态为 "+mnConf.status;
+                setTimeout(() => {
+                  this.activateMasterNode();
+                }, 5000);
+              }else if(mnConf.staus == 'EXPIRED'){
+                this.loadmsg="请等待主节点启动...当前状态为 "+mnConf.status;
+                setTimeout(() => {
+                  this.activateMasterNode();
+                }, 5000);
+              }else{
+                this.loadmsg="请等待主节点启动...当前状态为 "+mnConf.status;
+                setTimeout(() => {
+                  this.activateMasterNode();
+                }, 5000);
+              }
+            }else{
+                this.loadmsg="请等待主节点启动...";
+                setTimeout(() => {
+                  this.activateMasterNode();
+                }, 5000);
+            }
+          }
+        })
+        .catch((err) => {
+          console.log("查询状态失败!");
+          setTimeout(() => {
+              this.watchMnStatus(codeName);
+            }, 5000);
+        });
+    },
     activateMasterNode() {
       client
         .masternode('start-alias', `${this.mnCodeName}`)
@@ -55,22 +155,18 @@ export default {
             setTimeout(() => {
               this.activateMasterNode();
             }, 10000);
-          } else {
-            this.loading = false;
-            if (response.result == 'successful') {
-              //更新主节点状态
-              this.updateMnStaus("1");
-              this.finished = true;
-              this.closeDaemon();
-              // eslint-disable-next-line
-              new window.Notification('提示', {
-                body: '主节点已激活成功，您可以重新打开电脑的钱包客户端查看主节点运行情况！',
-              });
-
-            }
+          } else if (response.result == 'successful') {
+            this.loadmsg = '正在检查主节点状态...'
+            //监控主节点是否ENABLE
+            this.watchMnStatus(this.mnCodeName);
+          }else {
+            setTimeout(() => {
+              this.activateMasterNode();
+            }, 10000);
           }
         })
         .catch((error) => {
+          console.log("error:",error)
           if (error.code === -13) {
             client
               .walletPassphrase(this.passphrase, 5000)
@@ -92,11 +188,12 @@ export default {
         });
     },
     restartDaemon() {
+      console.log("重启节点");
       client
         .stop()
         .then(() => {
           setTimeout(() => {
-            execFile(`${path.join(__static, `/daemon/${os.platform()}/vpubd`).replace('app.asar', 'app.asar.unpacked')}`, ['-daemon', '-rpcuser=mn', '-rpcpassword=999000',`-datadir=${this.$store.state.Information.mnConfPath}`]);
+            execFile(`${path.join(__static, `/daemon/${os.platform()}/vpubd`).replace('app.asar', 'app.asar.unpacked')}`, ['-daemon', '-rpcuser=mn', '-rpcpassword=999000','-rpcport=9902','-server=1','-rpcallowip=127.0.0.1',`-datadir=${this.$store.state.Information.mnConfPath}`]);
           }, 1000);
         });
     },

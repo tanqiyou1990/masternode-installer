@@ -221,8 +221,9 @@ export default {
       this.$store.commit('SET_MNID', {
         mnId: this.myNodes[this.choseNode].id,
       }); 
+      this.mnName = this.myNodes[this.choseNode].nodeName;
       this.$store.commit('SET_MNNAME', {
-        mnName: this.myNodes[this.choseNode].nodeName,
+        mnName: this.mnName,
       }); 
       //设置一个主节点CODE，不能有汉字
       this.mnCodeName = `MN${Math.round(new Date().getTime() / 1000)}`;

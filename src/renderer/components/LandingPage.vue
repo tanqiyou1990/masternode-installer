@@ -55,10 +55,12 @@ export default {
   },
   methods: {
     runDaemon() {
+      console.log("开始启动钱包.");
+      console.log("目录：",this.$store.state.Information.mnConfPath);
       if (this.$store.state.Information.mnConfPath) {
         execFile(`${path.join(__static, `/daemon/${os.platform()}/vpubd`)
           .replace('app.asar', 'app.asar.unpacked')}`,
-        ['-rpcuser=mn', '-rpcpassword=999000', `-datadir=${this.$store.state.Information.mnConfPath}`],
+        ['-rpcuser=mn', '-rpcpassword=999000','-rpcport=9902','-rpcallowip=127.0.0.1','-server=1', `-datadir=${this.$store.state.Information.mnConfPath}`],
         (error, stdout, stderr) => {
           if (error) {
             // eslint-disable-next-line
