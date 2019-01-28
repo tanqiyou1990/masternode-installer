@@ -422,6 +422,14 @@ export default {
             };
           });
 
+          if(this.currentMasternodes!=null&&this.currentMasternodes.length>0){
+            for(let i=0;i<this.currentMasternodes.length;i++){
+              if(this.currentMasternodes[i].name==null||this.currentMasternodes[i].name==''){
+                this.currentMasternodes = this.currentMasternodes.splice(i,1);
+              }
+            }
+          }
+
         console.log('current masternodes:', this.currentMasternodes);
 
         this.compareMasternodes();
