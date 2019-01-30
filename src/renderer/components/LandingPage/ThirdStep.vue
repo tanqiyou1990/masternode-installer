@@ -99,55 +99,105 @@ export default {
   },
   methods: {
     //通过ADDNODE向主节点发送包
-    addNode(ip){
-      axios.post(`${this.$store.state.Information.baseUrl}/vp/addNode`, qs.stringify({
-        ip:ip
-      }), {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Bearer ${this.$store.state.User.accessToken}`
-          }
-        })
-        .then((response) => {
-          console.log("Addnode result:",response);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    activateNode(ip){
+      // axios.post(`${this.$store.state.Information.baseUrl}/vp/addNode`, qs.stringify({
+      //   ip:ip
+      // }), {
+      //     headers: {
+      //       'Content-Type': 'application/x-www-form-urlencoded',
+      //       Authorization: `Bearer ${this.$store.state.User.accessToken}`
+      //     }
+      //   })
+      //   .then((response) => {
+      //     console.log("Addnode result:",response);
+      //   })
+      //   .catch((err) => {
+      //     console.log(err);
+      //   });
+      // let block_count = 0;
+      // let block_count_for_mn_ping = 0;
+      // let block_hash_for_mn_ping = '';
+      // axios.get("https://pl.vpubchain.net/api/getblockcount")
+      //   .then(data => {
+      //     block_count=Number(data);
+      //     block_count_for_mn_ping = block_count-12;
+      //     return block_count_for_mn_ping;
+      //   })
+      //   .then(data => {
+      //     axios.get("https://pl.vpubchain.net/api/getblockhash?index="+data)
+      //     .then(bHash => {
+      //       block_hash_for_mn_ping=bHash;
+      //     });
+      //   });
+
+
     },
     activateMasterNode() {
-      client
-        .masternode('start-alias', `${this.mnCodeName}`)
+      axios.post('http://127.0.0.1:9902/', {
+          jsonrpc: '1.0',
+          method: 'masternode',
+          params: ['start-alias',this.mnCodeName],
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          auth: {
+            username: 'mn',
+            password: '999000',
+          },
+        })
         .then((response) => {
-          console.log("start-alias");
           console.log(response);
-          if (response.errorMessage) {
+          if (response.data.result=="failed") {
             this.loading = true;
             this.loadmsg = '区块数据同步中...'
             setTimeout(() => {
               this.activateMasterNode();
             }, 10000);
           }else{
-            let ip = this.myNode.address.replace(":9900","");
-            this.addNode(ip);
-            setTimeout(() => {
-              this.restartDaemon("vpubd");
-            }, 20000);
+            // let ip = this.myNode.address.replace(":9900","");
+            // this.activateNode(ip);
+            // setTimeout(() => {
+            //   this.restartDaemon("vpubd");
+            // }, 20000);
             setTimeout(() => {
               this.loadMnList();
-            }, 10000);
+            }, 25000);
           }
-        })
-        .catch((error) => {
-          console.log("error:",error)
-          if (error.code === -13) {
-            client
-              .walletPassphrase(this.passphrase, 5000)
-              .then(() => {
-                this.activateMasterNode();
-              });
-          }
+
         });
+      // client
+      //   .masternode('start-alias', `${this.mnCodeName}`)
+      //   .then((response) => {
+      //     console.log("start-alias");
+      //     console.log(response);
+      //     if (response.result=="failed") {
+      //       this.loading = true;
+      //       this.loadmsg = '区块数据同步中...'
+      //       setTimeout(() => {
+      //         this.activateMasterNode();
+      //       }, 10000);
+      //     }else{
+      //       let ip = this.myNode.address.replace(":9900","");
+      //       this.activateNode(ip);
+      //       setTimeout(() => {
+      //         this.restartDaemon("vpubd");
+      //       }, 20000);
+      //       setTimeout(() => {
+      //         this.loadMnList();
+      //       }, 25000);
+      //     }
+      //   })
+      //   .catch((error) => {
+      //     console.log("error:",error)
+      //     if (error.code === -13) {
+      //       client
+      //         .walletPassphrase(this.passphrase, 5000)
+      //         .then(() => {
+      //           this.activateMasterNode();
+      //         });
+      //     }
+      //   });
     },
     close() {
       const window = remote.getCurrentWindow();
@@ -298,7 +348,9 @@ export default {
           mnStr = mnStr.replace(/"masternode":/g,''); 
           let mnJson = JSON.parse(mnStr); 
           console.log("JSON:",mnJson);
+          console.log("mnCodeName",this.mnCodeName);
           let currentConfs=mnJson.result.filter(item => item.alias==this.mnCodeName);
+          console.log("currentConfs",currentConfs);
           if(currentConfs==null||currentConfs.length==0){
             console.log("未找到该主节点信息");
             return;
@@ -318,7 +370,7 @@ export default {
 
             case "PRE_ENABLED":
               this.loadmsg="主节点正在启动激活...这可能需要30分钟时间";
-              this.addNode(ip);
+              this.activateNode(ip);
               setTimeout(() => {
                 this.loadMnList();
               }, 5000);
@@ -351,7 +403,8 @@ export default {
               this.loadMnList();
             }, 5000);
         });
-    }
+    },
+    
   },
   mounted() {
     this.restartDaemon("vpubd");

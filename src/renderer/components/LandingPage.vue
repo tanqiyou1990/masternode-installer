@@ -103,6 +103,19 @@ export default {
   },
   mounted() {
 
+    // this.$store.commit('SET_MNNAME', {
+    //   mnName: "测试节点",
+    // });
+    // this.$store.commit('SET_MNCODENAME', {
+    //   mnCodeName: "MN1548687693",
+    // });
+
+    // this.$store.commit('SET_STEP', {
+    //   currentStep: 3,
+    // });
+
+    // return;
+
     chmod(`${path.join(__static, `/daemon/${os.platform()}/vpubd${os.platform() === 'win32' ? '.exe' : ''}`).replace('app.asar', 'app.asar.unpacked')}`,
       '0777', (err) => {
         if (err) {
