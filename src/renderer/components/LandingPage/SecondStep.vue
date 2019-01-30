@@ -190,6 +190,7 @@ runcmd:
       })
       // eslint-disable-next-line
         .then((response) => {
+          console.log("第一个：",response);
           return new Promise((resolve) => {
             // eslint-disable-next-line
             setTimeout(() => {
@@ -202,6 +203,7 @@ runcmd:
           });
         })
         .then((response) => {
+          console.log("第二个：",response);
           this.dropletIp.ip = response.data.droplet.networks.v4[0].ip_address;
           this.$store.commit('SET_IP', {
             ip: response.data.droplet.networks.v4[0].ip_address,
@@ -284,7 +286,7 @@ runcmd:
       console.log("开始更新主节点状态!");
       let param = {
         id:this.$store.state.Information.mnId,
-        mnAccount:this.$store.state.Information.mnAccount,
+        account:this.$store.state.Information.mnAccount,
         ip:ip,
         genkey:genkey,
         txid:txid,

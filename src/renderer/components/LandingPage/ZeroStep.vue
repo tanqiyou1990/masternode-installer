@@ -5,6 +5,14 @@
       <h1>LOGIN</h1>
       <input type="text" v-model="userName" name="u" placeholder="用户名" required="required" />
       <input type="password" v-model="passWd" name="p" placeholder="密码" required="required" />
+      <div style="width:100%;height:50px;justify-content: center;">
+        <div style="width:45%;height:50px;float:left;margin-left:5px;">
+          <img v-if="imgData" @click="productCode()" :src="imgData" height="35" width="100" placeholder="验证码">
+        </div>
+        <div style="width:45%;height:20px;float:left;text-align:left;">
+          <input type="text" v-model="imgCode"/>
+        </div>
+      </div>
       <button @click="userLogin" class="btn btn-primary btn-block btn-large">登录</button>
     </div>
 
@@ -40,10 +48,27 @@ export default {
       userName:'',
       passWd:'',
       loadding:false,
-      loadmsg:''
+      loadmsg:'',
+      imgCode:'',
+      randStr:'',
+      imgData:null
     };
   },
   methods: {
+    //生成验证码
+    productCode(){
+      this.randStr=this.guid();
+      axios.get(`${this.$store.state.Information.baseUrl}/code/${this.randStr}`,{
+        responseType: 'arraybuffer'
+      }).then(response => {
+        return 'data:image/png;base64,' + btoa(
+          new Uint8Array(response.data)
+            .reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+      }).then(data => {
+        this.imgData=data;
+      });
+    },
     userLogin(){
       if(this.userName==''||this.passWd==''){
         new window.Notification('提示', {
@@ -56,6 +81,8 @@ export default {
       axios.post(`${this.$store.state.Information.baseUrl}/oauth/token`,qs.stringify({
         grant_type:"password",
         scope:"server",
+        code:this.imgCode,
+        randomStr:this.randStr,
         username:this.userName,
         password:this.passWd
       }),{
@@ -171,9 +198,16 @@ export default {
           });
       }, 1000);
     },
+    guid() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+        return v.toString(16);
+      });
+    }
   },
   mounted() {
     this.checkIfWalletIsAlreadyRunning();
+    this.productCode();
   },
 };
 </script>

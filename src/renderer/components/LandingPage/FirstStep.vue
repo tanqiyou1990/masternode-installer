@@ -334,6 +334,24 @@ export default {
         this.$store.commit('SET_OUTPUT', {
           output:output[0],
         });
+
+        //获取txid对应的account
+        axios.get(`https://pl.vpubchain.net/api/getrawtransaction?txid=${output[0].txid}&decrypt=1`)
+          .then((response) => {
+
+          let outlist = response.data.vout;
+          console.log(outlist);
+          if(outlist!=null&&outlist.length>0){
+            outlist=outlist.filter(item => item.value==1000||item.value=='1000');
+          }
+          if(outlist!=null){
+            this.$store.commit('SET_MNACCOUNT', {
+                  mnAccount: outlist[0].scriptPubKey.addresses[0],
+                });
+          }
+          console.log("主节点账户地址:",this.$store.state.Information.mnAccount);
+        });
+
         // Generate Privkeys
         client
           .masternode('genkey')

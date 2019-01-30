@@ -102,7 +102,7 @@ export default {
     },
   },
   mounted() {
-    console.log("Land加载");
+
     chmod(`${path.join(__static, `/daemon/${os.platform()}/vpubd${os.platform() === 'win32' ? '.exe' : ''}`).replace('app.asar', 'app.asar.unpacked')}`,
       '0777', (err) => {
         if (err) {
