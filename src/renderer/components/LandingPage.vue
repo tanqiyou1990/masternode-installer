@@ -103,16 +103,18 @@ export default {
   },
   mounted() {
 
-    // this.$store.commit('SET_MNNAME', {
-    //   mnName: "测试节点",
-    // });
-    // this.$store.commit('SET_MNCODENAME', {
-    //   mnCodeName: "MN1548687693",
-    // });
 
-    // this.$store.commit('SET_STEP', {
-    //   currentStep: 3,
-    // });
+    //测试
+    // let param={
+    //   size:"s-1vcpu-1gb"
+    // };
+    // axios.post("http://127.0.0.1:4001/vps/region",param,{
+    //     headers: {
+    //       Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoibWFkZSBieSBqbCIsInVzZXJfbmFtZSI6InRlc3QxIiwic2NvcGUiOlsic2VydmVyIl0sImV4cCI6MTU1MDY3MDk0NiwidXNlcklkIjoxMiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9VU0VSIl0sImp0aSI6ImMzNDJhODA2LTMyYjUtNDQ3Zi04ZTRmLTdhOGZkYmMwNjljMCIsImNsaWVudF9pZCI6InZwIn0.Jh-WOzQJ-Jvugh79g4oeCXjwRwkSXj5O_lOakG-Mess`
+    //     }})
+    //   .then((response) => {
+    //     console.log(response);
+    //   });
 
     // return;
 

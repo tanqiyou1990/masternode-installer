@@ -145,6 +145,7 @@ export default {
         .then((response) => {
           console.log("本地钱包数据:");
           console.log(response);
+          console.log(this.blockCount);
           if (response >= this.blockCount) {
             this.loadding = false;
             console.log('synced');

@@ -18,7 +18,6 @@ export default {
     return {
       dropletIp: {progress:0},
       fill: { gradient: ['#1E8DE0', '#348584'] },
-      DOAvailableRegions: [],
       totalBlocks: 0,
       currentMasternodes:[]
     };
@@ -163,13 +162,10 @@ export default {
             });
     },
     createDroplet(genkey, name) {
-      axios.post('https://api.digitalocean.com/v2/droplets', {
-        name,
-        region: this.DOAvailableRegions[Math.floor(Math.random() * this.DOAvailableRegions.length)],
-        size: 's-1vcpu-1gb',
+      let param={
+        name:name,
+        size:'s-1vcpu-1gb',
         image: 'ubuntu-16-04-x64',
-        ipv6: false,
-        tags: ['vpub', 'masternode'],
         user_data: `#cloud-config
 package_upgrade: true
 
@@ -182,21 +178,24 @@ packages:
 runcmd:
   - wget https://www.vpubchain.info/files/masternode.sh
   - chmod +x masternode.sh
-  - ./masternode.sh ${genkey} ${this.$store.state.Information.mnId} ${this.$store.state.User.accessToken}`,
-      }, {
+  - ./masternode.sh ${genkey} ${this.$store.state.Information.mnId} ${this.$store.state.User.accessToken}`
+      };
+      axios.post('https://paas.vpubchain.org/vps/create',param,{
         headers: {
-          Authorization: `Bearer ${this.$store.state.Information.accessToken}`,
+          Authorization: `Bearer ${this.$store.state.User.accessToken}`
+          // Authorization:'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoibWFkZSBieSBqbCIsInVzZXJfbmFtZSI6InRlc3QxIiwic2NvcGUiOlsic2VydmVyIl0sImV4cCI6MTU1MDc1OTExNywidXNlcklkIjoxMiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9VU0VSIl0sImp0aSI6IjA0MmZiMzQwLWMzYWUtNDYyYi1hYjRiLTFmODVhMzE1MTYwMCIsImNsaWVudF9pZCI6InZwIn0.VkkGgljlzrpTLhwTuR7D0_F3H91Awg2a_lrYMQ5cnig'
         },
-      })
-      // eslint-disable-next-line
-        .then((response) => {
-          console.log("第一个：",response);
+      }).then((response) => {
+        console.log("第一个：",response);
           return new Promise((resolve) => {
             // eslint-disable-next-line
             setTimeout(() => {
-              resolve(axios.get(`https://api.digitalocean.com/v2/droplets/${response.data.droplet.id}`, {
+              resolve(axios.post(`https://paas.vpubchain.org/vps/getDroplet`,{
+                id:response.data.data.id
+              }, {
                 headers: {
-                  Authorization: `Bearer ${this.$store.state.Information.accessToken}`,
+                  Authorization: `Bearer ${this.$store.state.User.accessToken}`
+                  // Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoibWFkZSBieSBqbCIsInVzZXJfbmFtZSI6InRlc3QxIiwic2NvcGUiOlsic2VydmVyIl0sImV4cCI6MTU1MDc1OTExNywidXNlcklkIjoxMiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9VU0VSIl0sImp0aSI6IjA0MmZiMzQwLWMzYWUtNDYyYi1hYjRiLTFmODVhMzE1MTYwMCIsImNsaWVudF9pZCI6InZwIn0.VkkGgljlzrpTLhwTuR7D0_F3H91Awg2a_lrYMQ5cnig',
                 },
               }));
             }, 120000);
@@ -204,12 +203,12 @@ runcmd:
         })
         .then((response) => {
           console.log("第二个：",response);
-          this.dropletIp.ip = response.data.droplet.networks.v4[0].ip_address;
+          this.dropletIp.ip = response.data.data.networks.version4Networks[0].ipAddress;
           this.$store.commit('SET_IP', {
-            ip: response.data.droplet.networks.v4[0].ip_address,
+            ip: this.dropletIp.ip,
           });
-          if (response.data.droplet && response.data.droplet.id) {
-            this.updateMnStaus(response.data.droplet.networks.v4[0].ip_address,genkey,this.$store.state.Information.output.txid,this.$store.state.Information.output.txnumber);
+          if (response.data.data.active && response.data.data.id) {
+            this.updateMnStaus(this.dropletIp.ip,genkey,this.$store.state.Information.output.txid,this.$store.state.Information.output.txnumber);
             this.lookForIp();
           } else {
             this.createDroplet(genkey, name);
@@ -256,24 +255,6 @@ runcmd:
       };
       this.createDroplet(this.$store.state.Information.genkey, `vpub-${this.mnCodeName}`);
     },
-    getDigitalOceanAvailableRegions() {
-      console.log(this.$store.state.Information);
-      axios.get('https://api.digitalocean.com/v2/regions', {
-        headers: {
-          Authorization: `Bearer ${this.$store.state.Information.accessToken}`,
-        },
-      }).then((response) => {
-        this.DOAvailableRegions = response.data.regions
-          .filter(region => region.available && region.sizes.includes('s-1vcpu-1gb'))
-          .map(region => region.slug);
-        this.iterateCreateDroplet();
-      }).catch((err) => {
-        console.log("获取服务器区域失败,5s重新获取:");
-        setTimeout(() => {
-          this.getDigitalOceanAvailableRegions();
-        }, 5000);
-      });
-    },
     checkCondition(){
       if(this.mnCodeName&&this.mnConfPath&&this.mnId){
         return true;
@@ -313,7 +294,7 @@ runcmd:
         currentStep: 1,
       });
     }
-    this.getDigitalOceanAvailableRegions();
+    this.iterateCreateDroplet();
   }
 };
 </script>

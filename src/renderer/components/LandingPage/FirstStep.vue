@@ -276,16 +276,23 @@ export default {
         }
 
         if (this.outputs.length) {
-          if (!this.currentMasternodes || !this.currentMasternodes.length) {
-            this.currentMasternodes = [];
-          }
+          for(let i =0;i<this.outputs.length;i++){
+           let isAvailable = true;
+            for(let j=0;j<this.currentMasternodes.length;j++){
+              if(String(this.currentMasternodes[j].txid)===String(this.outputs[i].txid) 
+              && Number(this.currentMasternodes[j].txnumber)===Number(this.outputs[i].txnumber)){
+                // console.log(this.outputs[i].txid,this.outputs[i].txnumber,this.currentMasternodes[j].txid,this.currentMasternodes[j].txnumber,"相等");
+                isAvailable=false
+                break;
+              }
+              // console.log(this.outputs[i].txid,this.outputs[i].txnumber,this.currentMasternodes[j].txid,this.currentMasternodes[j].txnumber,"不等");
+            }
 
-          // this.availableMasternodesToInstall = this.outputs
-          //   .filter(output => !this.currentMasternodes
-          //     .find(masternode => masternode.txid === output.txid &&
-          //       masternode.txnumber === output.txnumber));
-          this.availableMasternodesToInstall = this.outputs
-            .filter(this.comparer(this.currentMasternodes));
+            if(isAvailable){
+              // console.log("加入：",this.outputs[i]);
+              this.availableMasternodesToInstall.push(this.outputs[i]);
+            }
+          }
 
           // Double filtering with different methods. Removing duplicates.
           this.availableMasternodesToInstall = this.availableMasternodesToInstall
@@ -293,6 +300,8 @@ export default {
               index === self.findIndex(t => t.txid === masternode.txid &&
                 t.txnumber === masternode.txnumber),
             );
+          
+          console.log("availableMasternodesToInstall:",this.availableMasternodesToInstall);
 
           this.installMasternode();
         } else {
@@ -325,10 +334,11 @@ export default {
       this.installMasternode();
     },
     installMasternode() {
+      console.log('Awesome! we can install');
+      console.log(this.availableMasternodesToInstall);
       if (this.availableMasternodesToInstall &&
         this.availableMasternodesToInstall.length >= 1) {
-        console.log('Awesome! we can install');
-        console.log(this.availableMasternodesToInstall);
+
         // Get firsts available outputs
         const output = this.availableMasternodesToInstall.slice(0,1);
         this.$store.commit('SET_OUTPUT', {
@@ -349,8 +359,9 @@ export default {
                   mnAccount: outlist[0].scriptPubKey.addresses[0],
                 });
           }
-          console.log("主节点账户地址:",this.$store.state.Information.mnAccount);
+          console.log("主节点配置信息:",this.$store.state.Information);
         });
+
 
         // Generate Privkeys
         client
@@ -440,13 +451,13 @@ export default {
             };
           });
 
-          if(this.currentMasternodes!=null&&this.currentMasternodes.length>0){
-            for(let i=0;i<this.currentMasternodes.length;i++){
-              if(this.currentMasternodes[i].name==null||this.currentMasternodes[i].name==''){
-                this.currentMasternodes = this.currentMasternodes.splice(i,1);
-              }
-            }
-          }
+          // if(this.currentMasternodes!=null&&this.currentMasternodes.length>0){
+          //   for(let i=0;i<this.currentMasternodes.length;i++){
+          //     if(this.currentMasternodes[i].name==null||this.currentMasternodes[i].name==''){
+          //       this.currentMasternodes = this.currentMasternodes.splice(i,1);
+          //     }
+          //   }
+          // }
 
         console.log('current masternodes:', this.currentMasternodes);
 
