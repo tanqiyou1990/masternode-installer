@@ -239,6 +239,9 @@ export default {
         })
         .catch((err) => {
           console.log("更新主节点状态失败!");
+          setTimeout(() => {
+            this.updateMnStaus(staus);
+          }, 2000);
         });
     },
     //获取当前节点状态

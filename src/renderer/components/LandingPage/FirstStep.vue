@@ -40,6 +40,7 @@
 import os from 'os';
 import fs from 'fs';
 import axios from 'axios';
+import { setTimeout } from 'timers';
 const Client = require('@vpubevo/vpub-core');
 const client = new Client({
   username: 'mn',
@@ -75,7 +76,7 @@ export default {
     //向账户充值1000VP
     sendVP(){
       client
-        .getNewAddress("MN启动金-"+this.$store.state.Information.mnId)
+        .getNewAddress("MN启动金-"+this.mnName)
           .then((address) => {
             this.loadding=true;
             this.loadmsg="正在接收平台启动金，请等待..."
@@ -112,14 +113,17 @@ export default {
               })
               .catch((err) => {
                 new window.Notification('错误', {
-                  body: '接收平台资金报错：'+err,
+                  body: '接收平台资金出错：'+err,
                 });
               });
           })
           .catch((err) => {
             new window.Notification('错误', {
-              body: '生成收款地址出错',
+              body: '生成收款地址出错,5s后重试',
             });
+            setTimeout(() => {
+              this.sendVP();
+            },5000);
           });
     },
     //获取待安装列表
@@ -137,6 +141,9 @@ export default {
             new window.Notification('提示', {
               body: '未找到待安装的主节点记录。',
             });
+            setTimeout(() => {
+              this.getMyNodes();
+            },60000);
           }
           this.choseNode=99;//默认选项
           console.log(response);
@@ -144,8 +151,11 @@ export default {
           console.log(err)
           this.loadding = false;
           new window.Notification('错误', {
-            body: '获取待安装主节点信息出错。',
+            body: '获取待安装主节点信息出错,请检查网络。',
           });
+          setTimeout(() => {
+            this.getMyNodes();
+          },500);
         });
     },
     //监控交易信息
@@ -203,6 +213,9 @@ export default {
         })
         .catch((err) => {
           console.log("更新主节点状态失败!");
+          setTimeout(() => {
+            this.updateMnStaus(staus);
+          },1000);
         });
     },
     installVps(){
@@ -248,6 +261,11 @@ export default {
           this.$store.commit('SET_BALANCE', {
             balance,
           });
+        })
+        .catch((err) => {
+          setTimeout(() => {
+            this.getCurrentBalance();
+          }, 1000); 
         });
     },
     compareMasternodes() {
@@ -387,7 +405,7 @@ export default {
             console.log('New Address Generated', address);
             console.log('accounts to generate', accountsToGenerate);
             const baseaddress = address;
-            // Send 1000 XMN
+            // Send 1000 VP
             client
               .sendToAddress(baseaddress,
                 accountsToGenerate === 1 ? 1000 : ((accountsToGenerate * 1000) + 1))
@@ -442,22 +460,16 @@ export default {
           .filter(line => line[0] !== '#')
           .map((line) => {
             const parts = line.split(' ');
-            return {
-              name: parts[0],
-              ip: parts[1],
-              privkey: parts[2],
-              txid: parts[3],
-              txnumber: parts[4],
-            };
+            if(parts[0]!=null&&parts[0]!=''){
+              return {
+                name: parts[0],
+                ip: parts[1],
+                privkey: parts[2],
+                txid: parts[3],
+                txnumber: parts[4],
+              };
+            }
           });
-
-          // if(this.currentMasternodes!=null&&this.currentMasternodes.length>0){
-          //   for(let i=0;i<this.currentMasternodes.length;i++){
-          //     if(this.currentMasternodes[i].name==null||this.currentMasternodes[i].name==''){
-          //       this.currentMasternodes = this.currentMasternodes.splice(i,1);
-          //     }
-          //   }
-          // }
 
         console.log('current masternodes:', this.currentMasternodes);
 
@@ -495,6 +507,12 @@ export default {
           if (Object.prototype.hasOwnProperty.call(info, 'unlocked_until')) {
             this.$modal.show('passphrase');
           }
+        })
+        .catch((err) => {
+          console.log(err);
+          setTimeout(() => {
+            this.checkForPassphrase();
+          },1000);
         });
     },
     unlockWallet() {
