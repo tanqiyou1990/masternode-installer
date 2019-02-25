@@ -2,15 +2,16 @@
   <div>
 
     <div v-if="!isLogin" id="second-step" class = "login">
-      <h1>LOGIN</h1>
-      <input type="text" v-model="userName" name="u" placeholder="用户名" required="required" />
-      <input type="password" v-model="passWd" name="p" placeholder="密码" required="required" />
+      <h1>登陆</h1>
+      <input type="text" v-model="userTel" name="u" placeholder="手机号码" required="required" />
+      <!-- <input type="password" v-model="passWd" name="p" placeholder="密码" required="required" /> -->
       <div style="width:100%;height:50px;justify-content: center;">
-        <div style="width:45%;height:50px;float:left;margin-left:5px;">
-          <img v-if="imgData" @click="productCode()" :src="imgData" height="35" width="100" placeholder="验证码">
-        </div>
         <div style="width:45%;height:20px;float:left;text-align:left;">
-          <input type="text" v-model="imgCode"/>
+          <input type="text" v-model="msgCode"/>
+        </div>
+        <div style="width:45%;height:50px;float:left;text-align: center;margin: 0 auto;line-height: 40px;">
+          <button style="width:90%" disabled="true" v-if="loadTime>0">{{loadTime}}</button>
+          <button v-if="loadTime==0" @click="getMsgCode()">获取验证码</button>
         </div>
       </div>
       <button @click="userLogin" class="btn btn-primary btn-block btn-large">登录</button>
@@ -31,7 +32,6 @@
 <script>
 import qs from 'qs';
 import axios from 'axios';
-import { setTimeout } from 'timers';
 const remote = require('electron').remote;
 const Client = require('@vpubevo/vpub-core');
 const client = new Client({
@@ -45,46 +45,57 @@ export default {
     return {
       blockCount: 0,
       isLogin:false,
-      userName:'',
-      passWd:'',
+      userTel:'',
       loadding:false,
       loadmsg:'',
-      imgCode:'',
-      randStr:'',
-      imgData:null
+      msgCode:'',
+      imgData:null,
+      loadTime:0
     };
   },
   methods: {
-    //生成验证码
-    productCode(){
-      this.randStr=this.guid();
-      axios.get(`${this.$store.state.Information.baseUrl}/code/${this.randStr}`,{
-        responseType: 'arraybuffer'
-      }).then(response => {
-        return 'data:image/png;base64,' + btoa(
-          new Uint8Array(response.data)
-            .reduce((data, byte) => data + String.fromCharCode(byte), '')
-        );
-      }).then(data => {
-        this.imgData=data;
+    //倒计时
+    lockTime(){
+      if(Number(this.loadTime)>0){
+        this.loadTime=Number(this.loadTime)-1;
+        setTimeout(() => {
+          this.lockTime();
+        }, 1000);   
+      }
+    },
+    //获取验证码
+    getMsgCode(){
+      if(this.userTel==null||this.userTel==''){
+        new window.Notification('提示', {
+          body: '请输入手机号码',
+        });
+        return;
+      }
+      axios.get(`${this.$store.state.Information.baseUrl}/smsCode/${this.userTel}`)
+      .then(response => {
+        if(response.data.data){
+          this.loadTime=30;
+          this.lockTime();
+        }
+
+      }).catch(err => {
+        console.log(err);
       });
     },
     userLogin(){
-      if(this.userName==''||this.passWd==''){
+      if(this.userTel==''||this.msgCode==''){
         new window.Notification('提示', {
-          body: '用户名或者密码不能为空。',
+          body: '手机号码不能为空。',
         });
         return;
       }
       this.loadding = true;
       this.loadmsg = "正在登陆...";
-      axios.post(`${this.$store.state.Information.baseUrl}/oauth/token`,qs.stringify({
-        grant_type:"password",
+      axios.post(`${this.$store.state.Information.baseUrl}/mobile/token`,qs.stringify({
+        grant_type:"mobile",
         scope:"server",
-        code:this.imgCode,
-        randomStr:this.randStr,
-        username:this.userName,
-        password:this.passWd
+        code:this.msgCode,
+        mobile:this.userTel
       }),{
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
@@ -198,17 +209,10 @@ export default {
             }
           });
       }, 1000);
-    },
-    guid() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-        return v.toString(16);
-      });
     }
   },
   mounted() {
-    this.checkIfWalletIsAlreadyRunning();
-    this.productCode();
+    // this.checkIfWalletIsAlreadyRunning();
   },
 };
 </script>
