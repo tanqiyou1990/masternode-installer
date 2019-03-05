@@ -262,7 +262,7 @@ runcmd:
         return false;
       }
     },
-    //更新主节点状态
+    //更新主节点信息
     updateMnStaus(ip,genkey,txid,txindex){
       console.log("开始更新主节点状态!");
       let param = {

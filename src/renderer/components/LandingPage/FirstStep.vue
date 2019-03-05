@@ -193,12 +193,11 @@ export default {
           }, 5000); 
         });
     },
-    //更新主节点状态
+    //更新主节点安装步骤
     updateMnStaus(staus){
       console.log("开始更新主节点状态!");
       let param = {
         id:this.$store.state.Information.mnId,
-        status:staus,
         step:"99"
       };
       axios.post(`${this.$store.state.Information.baseUrl}/bsMasternode/update`,param,{

@@ -222,28 +222,6 @@ export default {
         });
       }
     },
-    updateMnStaus(staus){
-      console.log("开始更新主节点状态!");
-      let param = {
-        id:this.$store.state.Information.mnId,
-        status:staus
-      };
-      axios.post(`${this.$store.state.Information.baseUrl}/bsMasternode/update`,param,{
-        headers: {
-          Authorization: `Bearer ${this.$store.state.User.accessToken}`
-        }})
-        .then((response) => {
-          if(response.data.success){
-            console.log("更新主节点状态成功!");
-          }
-        })
-        .catch((err) => {
-          console.log("更新主节点状态失败!");
-          setTimeout(() => {
-            this.updateMnStaus(staus);
-          }, 2000);
-        });
-    },
     //获取当前节点状态
     loadMnList(){ 
       axios.post('http://127.0.0.1:9902/', {
@@ -279,7 +257,6 @@ export default {
           switch (this.myNode.status) {
             case "ENABLED":
               //更新主节点状态
-              this.updateMnStaus("1");
               new window.Notification('提示', {
                 body: '主节点已成功激活。',
               });
