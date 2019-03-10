@@ -1,12 +1,10 @@
 import { app, BrowserWindow, Menu } from 'electron' // eslint-disable-line
-const bodyParser = require('body-parser');
 const Client = require('@vpubevo/vpub-core');
 const client = new Client({
   username: 'mn',
   password: '999000',
   port: 9902,
 });
-
 
 /**
  * Set `__static` path to static files in production
@@ -27,9 +25,9 @@ function createWindow() {
    * Initial window options
    */
   mainWindow = new BrowserWindow({
-    height: 700,
+    height: 600,
     useContentSize: true,
-    width: 500,
+    width: 450,
     webPreferences: {
       allowRunningInsecureContent: true,
       webSecurity: false,

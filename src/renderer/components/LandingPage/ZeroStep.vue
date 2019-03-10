@@ -1,10 +1,9 @@
 <template>
   <div>
 
-    <div v-if="!isLogin" id="second-step" class = "login">
+    <!-- <div v-if="!isLogin" id="second-step" class = "login">
       <h1>登陆</h1>
       <input type="text" v-model="userTel" name="u" placeholder="手机号码" required="required" />
-      <!-- <input type="password" v-model="passWd" name="p" placeholder="密码" required="required" /> -->
       <div style="width:100%;height:50px;justify-content: center;">
         <div style="width:45%;height:20px;float:left;text-align:left;">
           <input type="text" v-model="msgCode"/>
@@ -15,7 +14,7 @@
         </div>
       </div>
       <button @click="userLogin" class="btn btn-primary btn-block btn-large">登录</button>
-    </div>
+    </div> -->
 
 
 
@@ -44,105 +43,20 @@ export default {
   data() {
     return {
       blockCount: 0,
-      isLogin:false,
-      userTel:'',
       loadding:false,
       loadmsg:'',
-      msgCode:'',
-      imgData:null,
-      loadTime:0
     };
   },
   methods: {
-    //倒计时
-    lockTime(){
-      if(Number(this.loadTime)>0){
-        this.loadTime=Number(this.loadTime)-1;
-        setTimeout(() => {
-          this.lockTime();
-        }, 1000);   
-      }
-    },
-    //获取验证码
-    getMsgCode(){
-      if(this.userTel==null||this.userTel==''){
-        new window.Notification('提示', {
-          body: '请输入手机号码',
-        });
-        return;
-      }
-      axios.get(`${this.$store.state.Information.baseUrl}/smsCode/${this.userTel}`)
-      .then(response => {
-        if(response.data.data){
-          this.loadTime=30;
-          this.lockTime();
-        }
-
-      }).catch(err => {
-        console.log(err);
-      });
-    },
-    userLogin(){
-      if(this.userTel==''||this.msgCode==''){
-        new window.Notification('提示', {
-          body: '手机号码不能为空。',
-        });
-        return;
-      }
-      this.loadding = true;
-      this.loadmsg = "正在登陆...";
-      axios.post(`${this.$store.state.Information.baseUrl}/mobile/token`,qs.stringify({
-        grant_type:"mobile",
-        scope:"server",
-        code:this.msgCode,
-        mobile:this.userTel
-      }),{
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        auth: {
-          username: 'vp',
-          password: 'vp',
-        },
-      })
-      .then((response) => {
-        this.$store.commit('SET_USERTOKEN', {
-          accessToken: response.data.access_token,
-        });      
-        console.log("用户TOKEN:"+this.$store.state.User.accessToken);
-        this.isLogin=true;
-        this.loadding = false;
-        // this.checkIfWalletIsLoaded();
-        new window.Notification('提示', {
-          body: "登陆成功",
-        });    
-        this.checkIfWalletIsLoaded();   
-      }).catch((err) => {
-        if(err.response){
-          if(err.response.data.error=="unauthorized"){
-            new window.Notification('提示', {
-              body: "用户名或者密码错误",
-            });
-          }else{
-            new window.Notification('提示', {
-              body: err,
-            });          
-          }
-        }else{
-          new window.Notification('提示', {
-            body: err,
-          });  
-        }
-        this.loadding = false;
-        return;
-      });
-      
-    },
     getBlockCount() {
+      this.loadding = true;
+      this.loadmsg = "正在获取区块信息...";
       axios.get('https://pl.vpubchain.net/api/getblockcount')
         .then((response) => {
+          this.loadding = false;
           console.log("当前区块高度:"+response.data);
           this.blockCount = Number(response.data);
+          this.checkIfWalletIsLoaded();
         }).catch((err) => {
           console.log("获取区块高度失败，5s重新获取");
           setTimeout(() => {
@@ -151,20 +65,26 @@ export default {
         });
     },
     checkIfWalletIsLoaded() {
+      this.loadding = true;
+      this.loadmsg = "正在获取本机客户端信息...";
       client
         .getBlockCount()
         .then((response) => {
           console.log("本地钱包数据:");
           console.log(response);
-          console.log(this.blockCount);
           if (response >= this.blockCount) {
             this.loadding = false;
-            console.log('synced');
-            setTimeout(() => {
-              this.$store.commit('SET_STEP', {
-                currentStep: 1,
-              });
-            }, 2000);
+            console.log('本地同步完毕');
+            // setTimeout(() => {
+            //   this.$store.commit('SET_STEP', {
+            //     currentStep: 1,
+            //   });
+            // }, 2000);
+            this.$store.commit('SET_ENVPRE', {
+              isEnvPrepared: true,
+            });
+            this.loadding=true;
+            this.loadmsg="环境准备完毕,等待用户指令...";
           } else {
             this.loadding = true;
             this.loadmsg = "正在同步区块数据..."
@@ -182,19 +102,21 @@ export default {
     //获取本地钱包信息
     checkIfWalletIsAlreadyRunning() {
       console.log("获取本地前钱包");
+      this.loadding = true;
+      this.loadmsg = "正在检查核心客户端...";
       setTimeout(() => {
         client
           .getInfo()
           .then((response) => {
             console.log(response);
+            this.loadding = false;
             this.getBlockCount();
-            
           })
           .catch((error) => {
             console.log(error);
             if (error.code === 401) {
               // eslint-disable-next-line
-              new window.Notification('请关闭维公链客户端程序', {
+              new window.Notification('提示', {
                 body: '程序检测到维公链客户端正在运行，请关闭之后重新打开主节点安装程序。',
               });
 
@@ -212,7 +134,8 @@ export default {
     }
   },
   mounted() {
-    // this.checkIfWalletIsAlreadyRunning();
+
+    this.checkIfWalletIsAlreadyRunning();
   },
 };
 </script>

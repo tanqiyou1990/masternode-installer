@@ -262,6 +262,9 @@ export default {
               });
               this.loading=false;
               this.finished=true;
+              this.$store.commit('SET_INSTALL_STATUS', {
+                isInstalling: false,
+              });
               break;
 
             case "PRE_ENABLED":

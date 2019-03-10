@@ -1,7 +1,7 @@
 <template>
   <div id="wrapper">
     <img id="logo" src="~@/assets/LOGO.png" alt="Vpub">
-    <h1 class="title">维公链主节点安装程序</h1>
+    <h1 class="title">维公链主节点安装助手</h1>
     <main>
       <div class="steps-content">
         <zero-step v-if="currentStep === 0 || !currentStep" />
@@ -102,21 +102,6 @@ export default {
     },
   },
   mounted() {
-
-
-    //测试
-    // let param={
-    //   size:"s-1vcpu-1gb"
-    // };
-    // axios.post("http://127.0.0.1:4001/vps/region",param,{
-    //     headers: {
-    //       Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoibWFkZSBieSBqbCIsInVzZXJfbmFtZSI6InRlc3QxIiwic2NvcGUiOlsic2VydmVyIl0sImV4cCI6MTU1MDY3MDk0NiwidXNlcklkIjoxMiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9VU0VSIl0sImp0aSI6ImMzNDJhODA2LTMyYjUtNDQ3Zi04ZTRmLTdhOGZkYmMwNjljMCIsImNsaWVudF9pZCI6InZwIn0.Jh-WOzQJ-Jvugh79g4oeCXjwRwkSXj5O_lOakG-Mess`
-    //     }})
-    //   .then((response) => {
-    //     console.log(response);
-    //   });
-
-    // return;
 
     chmod(`${path.join(__static, `/daemon/${os.platform()}/vpubd${os.platform() === 'win32' ? '.exe' : ''}`).replace('app.asar', 'app.asar.unpacked')}`,
       '0777', (err) => {

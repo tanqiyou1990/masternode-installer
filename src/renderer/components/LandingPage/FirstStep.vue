@@ -4,15 +4,6 @@
 
     <div class="separator"></div>
 
-    <div v-if="!isBegin" class="form-group">
-      <label for="state">选择一个待安装的主节点:</label>
-      <select v-model="choseNode" name="state" id="state" class="state pickout" placeholder="选择一个主节点">
-        <option value="99" selected>---请选择---</option>
-        <option v-for="(node,index) in myNodes" :key="index" :value="index">{{node.nodeName}}</option>
-      </select>
-      <button @click="installVps">开始安装</button>
-		</div>
-
     <div v-if="loadding">
       <h3>{{loadmsg}}</h3>
       <div class="loading">
@@ -56,8 +47,7 @@ export default {
       isBegin:false,
       loadding:false,
       loadmsg:'',
-      choseNode:null,
-      myNodes:[],
+      insertNode:{},
       outputs: [],
       availableMasternodesToInstall: [],
       currentMasternodes: null,
@@ -127,26 +117,24 @@ export default {
           });
     },
     //获取待安装列表
-    getMyNodes(){
+    getNodeInfo(){
       this.loadding = true;
       this.loadmsg = "加载主节点信息...";
-      axios.get(`${this.$store.state.Information.baseUrl}/bsMasternode/myNodes/0`,{
+      axios.get(`${this.$store.state.Information.baseUrl}/bsMasternode/getById/${this.$store.state.Information.mnId}`,{
         headers: {
           Authorization: `Bearer ${this.$store.state.User.accessToken}`
         }})
         .then((response) => {
+          console.log(response);
           this.loadding = false;
-          this.myNodes = response.data.data;
-          if(!this.myNodes.length){
+          this.insertNode = response.data.data;
+          if(!this.insertNode){
             new window.Notification('提示', {
               body: '未找到待安装的主节点记录。',
             });
-            setTimeout(() => {
-              this.getMyNodes();
-            },60000);
+          }else{
+            this.installVps();
           }
-          this.choseNode=99;//默认选项
-          console.log(response);
         }).catch((err) => {
           console.log(err)
           this.loadding = false;
@@ -154,7 +142,7 @@ export default {
             body: '获取待安装主节点信息出错,请检查网络。',
           });
           setTimeout(() => {
-            this.getMyNodes();
+            this.getNodeInfo();
           },500);
         });
     },
@@ -218,22 +206,10 @@ export default {
         });
     },
     installVps(){
-      if(this.myNodes==null||this.myNodes.length==0){
-        new window.Notification('提示', {
-          body: '您尚未购买主节点，请前往平台官网购买!',
-        });
-        return;
-      }
-      if(this.choseNode=='99'||this.choseNode==99){
-        new window.Notification('提示', {
-          body: '请选择需要安装的主节点。',
-        });
-        return;
-      }
       this.$store.commit('SET_MNID', {
-        mnId: this.myNodes[this.choseNode].id,
+        mnId: this.insertNode.id,
       }); 
-      this.mnName = this.myNodes[this.choseNode].nodeName;
+      this.mnName = this.insertNode.nodeName;
       this.$store.commit('SET_MNNAME', {
         mnName: this.mnName,
       }); 
@@ -244,6 +220,7 @@ export default {
       });
       this.isBegin=true;
       //开始转账
+      console.log("#######开始转账#######");
       this.sendVP();
     },
     //获取当前钱包余额
@@ -534,7 +511,7 @@ export default {
   mounted() {
     this.checkForPassphrase();
     this.getCurrentBalance();
-    this.getMyNodes();
+    this.getNodeInfo();
   },
 };
 </script>
