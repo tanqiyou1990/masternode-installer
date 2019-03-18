@@ -33,7 +33,7 @@ const Client = require('@vpubevo/vpub-core');
 const client = new Client({
   username: 'mn',
   password: '999000',
-  port: 9902,
+  port: 11772,
 });
 
 export default {
@@ -60,7 +60,7 @@ export default {
       if (this.$store.state.Information.mnConfPath) {
         execFile(`${path.join(__static, `/daemon/${os.platform()}/vpubd`)
           .replace('app.asar', 'app.asar.unpacked')}`,
-        ['-rpcuser=mn', '-rpcpassword=999000','-rpcport=9902','-rpcallowip=127.0.0.1','-server=1', `-datadir=${this.$store.state.Information.mnConfPath}`],
+        ['-rpcuser=mn', '-rpcpassword=999000','-rpcport=11772','-rpcallowip=127.0.0.1','-server=1', `-datadir=${this.$store.state.Information.mnConfPath}`],
         (error, stdout, stderr) => {
           if (error) {
             // eslint-disable-next-line
@@ -142,7 +142,7 @@ export default {
           });
         } else if (os.platform() === 'linux') {
           this.$store.commit('SET_MNCONFPATH', {
-            mnConfPath: `${os.userInfo().homedir}/.vpubcore`,
+            mnConfPath: `${os.userInfo().homedir}/.vpub`,
           });
           this.runDaemon();
         }

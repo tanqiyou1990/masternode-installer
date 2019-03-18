@@ -37,7 +37,7 @@ const Client = require('@vpubevo/vpub-core');
 const client = new Client({
   username: 'mn',
   password: '999000',
-  port: 9902,
+  port: 11772,
 });
 
 export default {
@@ -132,7 +132,7 @@ export default {
         .then(() => {
           this.confVpub();
           setTimeout(() => {
-            execFile(`${path.join(__static, `/daemon/${os.platform()}/${exeType}`).replace('app.asar', 'app.asar.unpacked')}`, ['-daemon', '-rpcuser=mn', '-rpcpassword=999000','-rpcport=9902','-server=1','-rpcallowip=127.0.0.1',`-datadir=${this.$store.state.Information.mnConfPath}`]);
+            execFile(`${path.join(__static, `/daemon/${os.platform()}/${exeType}`).replace('app.asar', 'app.asar.unpacked')}`, ['-daemon', '-rpcuser=mn', '-rpcpassword=999000','-rpcport=11772','-server=1','-rpcallowip=127.0.0.1',`-datadir=${this.$store.state.Information.mnConfPath}`]);
           }, 3000);
         });
     },
@@ -204,7 +204,7 @@ export default {
           }
           if(!haverpcport){
             fs.appendFileSync(`${this.$store.state.Information.mnConfPath}/vpub.conf`,
-                        `\nrpcport=9902`);
+                        `\nrpcport=11772`);
           }
           if(!haveserver){
             fs.appendFileSync(`${this.$store.state.Information.mnConfPath}/vpub.conf`,
@@ -224,7 +224,7 @@ export default {
     },
     //获取当前节点状态
     loadMnList(){ 
-      axios.post('http://127.0.0.1:9902/', {
+      axios.post('http://127.0.0.1:11772/', {
           jsonrpc: '1.0',
           method: 'masternode',
           params: ['list-conf'],

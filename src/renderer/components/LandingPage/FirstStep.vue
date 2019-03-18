@@ -36,7 +36,7 @@ const Client = require('@vpubevo/vpub-core');
 const client = new Client({
   username: 'mn',
   password: '999000',
-  port: 9902,
+  port: 11772,
 });
 
 export default {
@@ -245,7 +245,7 @@ export default {
         });
     },
     compareMasternodes() {
-      axios.post('http://127.0.0.1:9902/', {
+      axios.post('http://127.0.0.1:11772/', {
         jsonrpc: '1.0',
         method: 'masternode',
         params: ['outputs'],
@@ -460,14 +460,14 @@ export default {
         this.readCurrentMasternodes(`${datadirPath}/masternode.conf`);
       } else {
         console.log('datadir', datadirPath);
-        // datadirPath = `${os.userInfo().homedir}/AppData/Roaming/VpubCore`;
+        // datadirPath = `${os.userInfo().homedir}/AppData/Roaming/Vpub`;
         datadirPath = this.$store.state.Information.mnConfPath;
         if (os.platform() === 'darwin') {
           datadirPath =
-         `${os.userInfo().homedir}/Library/Application Support/VpubCore`;
+         `${os.userInfo().homedir}/Library/Application Support/Vpub`;
         }
         if (os.platform() === 'linux') {
-          datadirPath = `${os.userInfo().homedir}/.vpubcore`;
+          datadirPath = `${os.userInfo().homedir}/.vpub`;
         }
         if (fs.existsSync(`${datadirPath}/masternode.conf`)) {
           this.readCurrentMasternodes(`${datadirPath}/masternode.conf`);

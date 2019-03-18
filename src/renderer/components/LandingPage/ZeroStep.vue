@@ -36,7 +36,7 @@ const Client = require('@vpubevo/vpub-core');
 const client = new Client({
   username: 'mn',
   password: '999000',
-  port: 9902,
+  port: 11772,
 });
 
 export default {
