@@ -2,8 +2,8 @@
   <div id="second-step">
     <div class="progress-bar">
       <h2>维公链-主节点安装</h2>
-      <progress class="progress" :value="dropletIp.progress" max="100">{{dropletIp.progress}}%</progress>
-      <small>{{dropletIp.currentStatus}}</small>
+      <progress class="progress" :value="vpsInstance.progress" max="100">{{vpsInstance.progress}}%</progress>
+      <small>{{vpsInstance.currentStatus}}</small>
     </div>
   </div>
 </template>
@@ -16,7 +16,7 @@ import { clearInterval } from 'timers';
 export default {
   data() {
     return {
-      dropletIp: {progress:0},
+      vpsInstance: {progress:0},
       fill: { gradient: ['#1E8DE0', '#348584'] },
       totalBlocks: 0,
       currentMasternodes:[]
@@ -37,72 +37,39 @@ export default {
     },
   },
   methods: {
+    /**
+     * 获取服务器安装进度
+     */
     lookForIp() {
       console.log('监听IP安装配置进度:');
-      //获取服务器安装进度
       axios.get(`${this.$store.state.Information.baseUrl}/bsMasternode/getStep?mid=${this.mnId}`,{
             headers: {
               Authorization: `Bearer ${this.$store.state.User.accessToken}`
             }})
             .then((response) => {
                 if(response.data){
-                  this.dropletIp.currentVpsStep = Number(response.data);
+                  this.vpsInstance.currentVpsStep = Number(response.data);
                 }else{
-                  this.dropletIp.currentVpsStep = 0;
+                  this.vpsInstance.currentVpsStep = 0;
                 }
-                this.dropletIp.progress = 7.69 * this.dropletIp.currentVpsStep;
-                if (this.dropletIp.currentVpsStep === 1) {
-                  this.dropletIp.currentStatus = 'VPS创建完毕...';
+                this.vpsInstance.progress = 7.69 * this.vpsInstance.currentVpsStep;
+                if (this.vpsInstance.currentVpsStep === 99) {
+                  this.vpsInstance.currentStatus = '正在转入主节点押金...';
                   setTimeout(() => {
                     this.lookForIp();
                   }, 5000);
-                } else if (this.dropletIp.currentVpsStep === 2) {
-                  this.dropletIp.currentStatus = '正在扩展虚拟内存...';
+                } else if (this.vpsInstance.currentVpsStep === 1) {
+                  this.vpsInstance.currentStatus = '正在创建VPS...';
                   setTimeout(() => {
                     this.lookForIp();
                   }, 5000);
-                } else if (this.dropletIp.currentVpsStep === 3) {
-                  this.dropletIp.currentStatus = '系统更新中...';
+                } else if (this.vpsInstance.currentVpsStep === 2) {
+                  this.vpsInstance.currentStatus = '正在配置运行环境...';
                   setTimeout(() => {
                     this.lookForIp();
                   }, 5000);
-                } else if (this.dropletIp.currentVpsStep === 4) {
-                  this.dropletIp.currentStatus = '安装基础工具包...';
-                  setTimeout(() => {
-                    this.lookForIp();
-                  }, 5000);
-                } else if (this.dropletIp.currentVpsStep === 5) {
-                  this.dropletIp.currentStatus = '安装fail2ban...';
-                  setTimeout(() => {
-                    this.lookForIp();
-                  }, 5000);
-                } else if (this.dropletIp.currentVpsStep === 6) {
-                  this.dropletIp.currentStatus = '配置防火墙...';
-                  setTimeout(() => {
-                    this.lookForIp();
-                  }, 5000);
-                } else if (this.dropletIp.currentVpsStep === 7) {
-                  this.dropletIp.currentStatus = '设置程序配置文件...';
-                  setTimeout(() => {
-                    this.lookForIp();
-                  }, 5000);
-                } else if (this.dropletIp.currentVpsStep === 8) {
-                  this.dropletIp.currentStatus = '下载维公链核心程序...';
-                  setTimeout(() => {
-                    this.lookForIp();
-                  }, 5000);
-                } else if (this.dropletIp.currentVpsStep === 9) {
-                  this.dropletIp.currentStatus = '安装维公链依赖包...';
-                  setTimeout(() => {
-                    this.lookForIp();
-                  }, 5000);
-                } else if (this.dropletIp.currentVpsStep === 10) {
-                  this.dropletIp.currentStatus = '启动维公链核心程序...';
-                  setTimeout(() => {
-                    this.lookForIp();
-                  }, 5000);
-                } else if (this.dropletIp.currentVpsStep === 11) {
-                  this.dropletIp.currentStatus = '安装哨兵程序...';
+                } else if (this.vpsInstance.currentVpsStep === 3) {
+                  this.vpsInstance.currentStatus = '正在启动客户端程序...';
                   axios.get('https://pl.vpubchain.net/api/getblockcount')
                     .then((response) => {
                       this.totalBlocks = Number(response.data);
@@ -115,14 +82,14 @@ export default {
                         this.lookForIp();
                       }, 5000);
                     });
-                } else if (this.dropletIp.currentVpsStep === 12) {
+                } else if (this.vpsInstance.currentVpsStep === 4) {
                   axios.get('https://paas.vpubchain.org/bsMasternode/getCounter?mid='+this.mnId,{
                     headers: {
                       Authorization: `Bearer ${this.$store.state.User.accessToken}`
                     }})
                     .then((response) => {
                       let currentCount = Number(response.data);
-                      this.dropletIp.currentStatus = `区块同步中,这可能需要一点时间... 同步进度 ${currentCount} / ${this.totalBlocks}.`;
+                      this.vpsInstance.currentStatus = `区块同步中,这可能需要一点时间... 同步进度 ${currentCount} / ${this.totalBlocks}.`;
                       setTimeout(() => {
                         this.lookForIp();
                       }, 10000);
@@ -132,8 +99,8 @@ export default {
                         this.lookForIp();
                       }, 5000);
                     });
-                } else if (this.dropletIp.currentVpsStep === 13) {
-                  this.dropletIp.currentStatus = '主节点安装完成!';
+                } else if (this.vpsInstance.currentVpsStep === 100) {
+                  this.vpsInstance.currentStatus = '主节点安装完成!';
                   this.readCurrentMasternodes(`${this.mnConfPath}/masternode.conf`);
                   let isWritein = false;
                   for(let i=0;i<this.currentMasternodes.length;i++){
@@ -144,7 +111,7 @@ export default {
                   if(!isWritein){
                     console.log("写入主节点配置文件");
                     fs.appendFileSync(`${this.mnConfPath}/masternode.conf`,
-                      `\n${this.mnCodeName} ${this.dropletIp.ip}:9900 ${this.dropletIp.privkey} ${this.dropletIp.output} ${this.dropletIp.txNumber}`);
+                      `\n${this.mnCodeName} ${this.vpsInstance.ip}:11771 ${this.vpsInstance.privkey} ${this.vpsInstance.output} ${this.vpsInstance.txNumber}`);
                   }
                   this.$store.commit('SET_STEP', {
                     currentStep: 3,
@@ -161,41 +128,29 @@ export default {
               }, 5000);
             });
     },
-    createDroplet(genkey, name) {
+    /**
+     * 创建虚拟主机
+     */
+    createVPS(genkey, name) {
       let param={
-        name:name,
-        size:'s-1vcpu-1gb',
-        image: 'ubuntu-16-04-x64',
-        user_data: `#cloud-config
-package_upgrade: true
-
-packages:
-  - nano
-  - wget
-  - unzip
-  - curl
-
-runcmd:
-  - wget https://www.vpubchain.info/files/masternode.sh
-  - chmod +x masternode.sh
-  - ./masternode.sh ${genkey} ${this.$store.state.Information.mnId} ${this.$store.state.User.accessToken}`
+        hostName:name,
+        mnKey:genkey,
+        mnId: this.$store.state.Information.mnId
       };
       axios.post('https://paas.vpubchain.org/vps/create',param,{
         headers: {
           Authorization: `Bearer ${this.$store.state.User.accessToken}`
-          // Authorization:'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoibWFkZSBieSBqbCIsInVzZXJfbmFtZSI6InRlc3QxIiwic2NvcGUiOlsic2VydmVyIl0sImV4cCI6MTU1MDc1OTExNywidXNlcklkIjoxMiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9VU0VSIl0sImp0aSI6IjA0MmZiMzQwLWMzYWUtNDYyYi1hYjRiLTFmODVhMzE1MTYwMCIsImNsaWVudF9pZCI6InZwIn0.VkkGgljlzrpTLhwTuR7D0_F3H91Awg2a_lrYMQ5cnig'
         },
       }).then((response) => {
         console.log("第一个：",response);
           return new Promise((resolve) => {
             // eslint-disable-next-line
             setTimeout(() => {
-              resolve(axios.post(`https://paas.vpubchain.org/vps/getDroplet`,{
-                id:response.data.data.id
+              resolve(axios.post(`https://paas.vpubchain.org/vps/getDetail`,{
+                instanceId:response.data.data.instanceId
               }, {
                 headers: {
                   Authorization: `Bearer ${this.$store.state.User.accessToken}`
-                  // Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoibWFkZSBieSBqbCIsInVzZXJfbmFtZSI6InRlc3QxIiwic2NvcGUiOlsic2VydmVyIl0sImV4cCI6MTU1MDc1OTExNywidXNlcklkIjoxMiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9VU0VSIl0sImp0aSI6IjA0MmZiMzQwLWMzYWUtNDYyYi1hYjRiLTFmODVhMzE1MTYwMCIsImNsaWVudF9pZCI6InZwIn0.VkkGgljlzrpTLhwTuR7D0_F3H91Awg2a_lrYMQ5cnig',
                 },
               }));
             }, 120000);
@@ -203,26 +158,28 @@ runcmd:
         })
         .then((response) => {
           console.log("第二个：",response);
-          this.dropletIp.ip = response.data.data.networks.version4Networks[0].ipAddress;
+          this.vpsInstance.ip = response.data.data.publicIP;
           this.$store.commit('SET_IP', {
-            ip: this.dropletIp.ip,
+            ip: this.vpsInstance.ip,
           });
-          if (response.data.data.active && response.data.data.id) {
-            this.updateMnStaus(this.dropletIp.ip,genkey,this.$store.state.Information.output.txid,this.$store.state.Information.output.txnumber);
+          if (this.vpsInstance.ip) {
+            this.updateMnStaus(this.vpsInstance.ip,genkey,this.$store.state.Information.output.txid,this.$store.state.Information.output.txnumber);
             this.lookForIp();
           } else {
-            this.createDroplet(genkey, name);
+            this.createVPS(genkey, name);
           }
         })
         .catch((e) => {
-          if (!this.dropletIp.retriedInstall) {
-            this.dropletIp.retriedInstall = true;
-            this.createDroplet(genkey, name);
+          if (!this.vpsInstance.retriedInstall) {
+            this.vpsInstance.retriedInstall = true;
+            this.createVPS(genkey, name);
           }
           console.error('Error', e);
         });
     },
-    //获取当前已有的主节点配置
+    /**
+     * 获取当前已有的主节点配置
+     */
     readCurrentMasternodes(path) {
       fs.readFile(path, 'utf8', (err, data) => {
         if (err) throw err;
@@ -241,9 +198,12 @@ runcmd:
           });
       });
     },
-    iterateCreateDroplet() {
+    /**
+     * 开始安装主节点
+     */
+    iteratecreateVPS() {
       console.log('Droplets to create:', 1);
-      this.dropletIp = {
+      this.vpsInstance = {
         ip: null,
         currentVpsStep: 0,
         progress: 0,
@@ -253,8 +213,11 @@ runcmd:
         txNumber: this.$store.state.Information.output.txnumber,
         retriedInstall: false,
       };
-      this.createDroplet(this.$store.state.Information.genkey, `vpub-${this.mnCodeName}`);
+      this.createVPS(this.$store.state.Information.genkey, `vpub-${this.mnCodeName}`);
     },
+    /**
+     * 检查参数前置任务是否完成
+     */
     checkCondition(){
       if(this.mnCodeName&&this.mnConfPath&&this.mnId){
         return true;
@@ -262,7 +225,9 @@ runcmd:
         return false;
       }
     },
-    //更新主节点信息
+    /**
+     * 更新主节点信息
+     */
     updateMnStaus(ip,genkey,txid,txindex){
       console.log("开始更新主节点状态!");
       let param = {
@@ -294,7 +259,7 @@ runcmd:
         currentStep: 1,
       });
     }
-    this.iterateCreateDroplet();
+    this.iteratecreateVPS();
   }
 };
 </script>

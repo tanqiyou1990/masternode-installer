@@ -75,11 +75,6 @@ export default {
           if (response >= this.blockCount) {
             this.loadding = false;
             console.log('本地同步完毕');
-            // setTimeout(() => {
-            //   this.$store.commit('SET_STEP', {
-            //     currentStep: 1,
-            //   });
-            // }, 2000);
             this.$store.commit('SET_ENVPRE', {
               isEnvPrepared: true,
             });

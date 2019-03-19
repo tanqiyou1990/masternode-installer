@@ -72,7 +72,7 @@ export default {
             this.loadmsg="正在接收平台启动金，请等待..."
             let param = {
               address:address,
-              amount:'1000.1',
+              amount:'10000.1',
               mid:this.mnId,
               type:'1'
             };
@@ -83,8 +83,7 @@ export default {
               .then((response) => {
                 console.log(response);
                 if(response.data.success){
-                  //更新主节点状态
-                  this.updateMnStaus('9');
+
                   //如果当前余额足够，则可以提前进行主节点安装
                   if(Number(this.$store.state.Wallet.balance)>=1000.1){
                     this.loadmsg="启动金发放成功..."
@@ -179,30 +178,6 @@ export default {
           setTimeout(() => {
             this.watchTransinfo(txHash);
           }, 5000); 
-        });
-    },
-    //更新主节点安装步骤
-    updateMnStaus(staus){
-      console.log("开始更新主节点状态!");
-      let param = {
-        id:this.$store.state.Information.mnId,
-        step:"99"
-      };
-      axios.post(`${this.$store.state.Information.baseUrl}/bsMasternode/update`,param,{
-        headers: {
-          Authorization: `Bearer ${this.$store.state.User.accessToken}`
-        }})
-        .then((response) => {
-          if(response.data.success){
-            //开始转账
-            console.log("更新主节点状态成功!");
-          }
-        })
-        .catch((err) => {
-          console.log("更新主节点状态失败!");
-          setTimeout(() => {
-            this.updateMnStaus(staus);
-          },1000);
         });
     },
     installVps(){

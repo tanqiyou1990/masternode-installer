@@ -63,10 +63,6 @@ export default {
         ['-rpcuser=mn', '-rpcpassword=999000','-rpcport=11772','-rpcallowip=127.0.0.1','-server=1', `-datadir=${this.$store.state.Information.mnConfPath}`],
         (error, stdout, stderr) => {
           if (error) {
-            // eslint-disable-next-line
-            // new window.Notification('即将关闭你的钱包程序', {
-            //   body: '检测到运行中的钱包程序，系统正尝试关闭钱包程序。',
-            // });
             console.log("启动出错");
             setTimeout(() => {
               //尝试关闭客户端

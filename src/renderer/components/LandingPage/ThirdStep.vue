@@ -84,7 +84,9 @@ export default {
     },
   },
   methods: {
-    //激活主节点
+    /**
+     * 激活主节点
+     */
     activateMasterNode() {
       client
         .masternode('start-alias', `${this.mnCodeName}`)
@@ -114,10 +116,16 @@ export default {
           }
         });
     },
+    /**
+     * 关闭安装助手
+     */
     close() {
       const window = remote.getCurrentWindow();
       window.close();
     },
+    /**
+     * 关闭客户端程序
+     */
     closeDaemon(){
       client
         .stop()
@@ -125,6 +133,9 @@ export default {
           console.log("核心程序已退出!");
         });
     },
+    /**
+     * 重启客户端程序
+     */
     restartDaemon(exeType) {
       console.log("重启节点");
       client
@@ -136,7 +147,10 @@ export default {
           }, 3000);
         });
     },
-    //配置维公链配置文件（包括RPC等配置）
+
+    /**
+     * 配置维公链配置文件（包括RPC等配置）
+     */
     confVpub(){
       if (fs.existsSync(`${this.$store.state.Information.mnConfPath}/vpub.conf`)) {
         console.log('vpub.conf file found');
@@ -222,7 +236,9 @@ export default {
         });
       }
     },
-    //获取当前节点状态
+    /**
+     * 获取当前节点状态
+     */
     loadMnList(){ 
       axios.post('http://127.0.0.1:11772/', {
           jsonrpc: '1.0',
@@ -238,6 +254,7 @@ export default {
           },
         })
         .then((data) => {
+          console.log(data);
           let mnStr = data.request.responseText;
           mnStr = mnStr.replace('{"masternode":','['); 
           mnStr = mnStr.replace('},"error"','],"error"'); 
@@ -253,7 +270,7 @@ export default {
           }
           this.myNode = currentConfs[0];
           console.log("当前主节点状态",this.myNode);
-          let ip = this.myNode.address.replace(":9900","");
+          let ip = this.myNode.address.replace(":11771","");
           switch (this.myNode.status) {
             case "ENABLED":
               //更新主节点状态
