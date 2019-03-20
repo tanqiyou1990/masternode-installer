@@ -9,7 +9,7 @@
         <second-step v-if="currentStep === 2" />
         <third-step v-if="currentStep === 3" />
       </div>
-      <steps v-if="balance >= 1000" />
+      <steps v-if="balance >= 10000" />
     </main>
   </div>
 </template>

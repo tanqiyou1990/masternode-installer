@@ -82,7 +82,7 @@ export default {
             this.loadmsg="环境准备完毕,等待用户指令...";
           } else {
             this.loadding = true;
-            this.loadmsg = "正在同步区块数据..."
+            this.loadmsg = "正在同步区块数据...["+response+"/"+this.blockCount+"]"
             setTimeout(() => {
               this.checkIfWalletIsLoaded();
             }, 3000);

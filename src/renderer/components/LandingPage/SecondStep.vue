@@ -142,28 +142,37 @@ export default {
           Authorization: `Bearer ${this.$store.state.User.accessToken}`
         },
       }).then((response) => {
-        console.log("第一个：",response);
-          return new Promise((resolve) => {
-            // eslint-disable-next-line
-            setTimeout(() => {
-              resolve(axios.post(`https://paas.vpubchain.org/vps/getDetail`,{
-                instanceId:response.data.data.instanceId
-              }, {
-                headers: {
-                  Authorization: `Bearer ${this.$store.state.User.accessToken}`
-                },
-              }));
-            }, 120000);
-          });
+          console.log("第一个：",response);
+          if(!response.data.success){
+            console.log("创建VPS失败：",response.data.msg);
+            return;
+          }else{
+            return new Promise((resolve) => {
+              // eslint-disable-next-line
+              setTimeout(() => {
+                resolve(axios.post(`https://paas.vpubchain.org/vps/getDetail`,{
+                  instanceId:response.data.data.instanceId
+                }, {
+                  headers: {
+                    Authorization: `Bearer ${this.$store.state.User.accessToken}`
+                  },
+                }));
+              }, 120000);
+            });
+          }
         })
         .then((response) => {
+          if(!response){
+            return;
+          }
           console.log("第二个：",response);
           this.vpsInstance.ip = response.data.data.publicIP;
+          this.vpsInstance.id = response.data.data.instanceId;
           this.$store.commit('SET_IP', {
             ip: this.vpsInstance.ip,
           });
           if (this.vpsInstance.ip) {
-            this.updateMnStaus(this.vpsInstance.ip,genkey,this.$store.state.Information.output.txid,this.$store.state.Information.output.txnumber);
+            this.updateMnStaus(this.vpsInstance.id,this.vpsInstance.ip,genkey,this.$store.state.Information.output.txhash,this.$store.state.Information.output.outputidx);
             this.lookForIp();
           } else {
             this.createVPS(genkey, name);
@@ -188,13 +197,16 @@ export default {
           .filter(line => line[0] !== '#')
           .map((line) => {
             const parts = line.split(' ');
-            return {
-              name: parts[0],
-              ip: parts[1],
-              privkey: parts[2],
-              txid: parts[3],
-              txnumber: parts[4],
-            };
+            let tempStr = line.replace(/\s+/g,"");
+            if(tempStr!=null&&tempStr!=''&&parts[0]!=null&&parts[0]!=''){
+              return {
+                name: parts[0],
+                ip: parts[1],
+                privkey: parts[2],
+                txid: parts[3],
+                outputidx: parts[4],
+              };
+            }
           });
       });
     },
@@ -209,8 +221,8 @@ export default {
         progress: 0,
         currentStatus: '正在安装主机... 这可能需要花费几分钟时间.',
         privkey: this.$store.state.Information.genkey,
-        output: this.$store.state.Information.output.txid,
-        txNumber: this.$store.state.Information.output.txnumber,
+        output: this.$store.state.Information.output.txhash,
+        txNumber: this.$store.state.Information.output.outputidx, 
         retriedInstall: false,
       };
       this.createVPS(this.$store.state.Information.genkey, `vpub-${this.mnCodeName}`);
@@ -228,9 +240,10 @@ export default {
     /**
      * 更新主节点信息
      */
-    updateMnStaus(ip,genkey,txid,txindex){
+    updateMnStaus(vpsid,ip,genkey,txid,txindex){
       console.log("开始更新主节点状态!");
       let param = {
+        vpsid:vpsid,
         id:this.$store.state.Information.mnId,
         account:this.$store.state.Information.mnAccount,
         ip:ip,

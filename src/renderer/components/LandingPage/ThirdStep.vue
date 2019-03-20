@@ -88,11 +88,22 @@ export default {
      * 激活主节点
      */
     activateMasterNode() {
-      client
-        .masternode('start-alias', `${this.mnCodeName}`)
+
+      axios.post('http://127.0.0.1:11772/', {
+          jsonrpc: '1.0',
+          method: 'startmasternode',
+          params: ['alias','false',this.mnCodeName],
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          auth: {
+            username: 'mn',
+            password: '999000',
+          },
+        })
         .then((response) => {
-          console.log("start-alias");
-          console.log(response);
+          console.log("start-alias",response);
           if (response.result=="failed") {
             this.loading = true;
             this.loadmsg = '区块数据同步中...'
@@ -107,12 +118,17 @@ export default {
         })
         .catch((error) => {
           console.log("error:",error)
+          console.log("s");
           if (error.code === -13) {
             client
               .walletPassphrase(this.passphrase, 5000)
               .then(() => {
                 this.activateMasterNode();
               });
+          }else{
+            setTimeout(() => {
+              this.loadMnList();
+            },25000);
           }
         });
     },

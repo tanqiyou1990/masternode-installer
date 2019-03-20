@@ -54,19 +54,24 @@ expressApp.get("/check-env",(req,res) => {
 expressApp.post("/mnInstall",(req,res) => {
   let mid = req.body.mid;
   let userToken = req.body.token;
-  store.commit('SET_INSTALL_STATUS', {
-    isInstalling: true,
-  });
-  store.commit('SET_USERTOKEN', {
-    accessToken: userToken,
-  });
-  store.commit('SET_MNID', {
-    mnId: mid,
-  });
-  store.commit('SET_STEP', {
-    currentStep: 1,
-  });
-  // res.send(true);
+  console.log(req.body);
+  if(mid&&userToken){
+    store.commit('SET_INSTALL_STATUS', {
+      isInstalling: true,
+    });
+    store.commit('SET_USERTOKEN', {
+      accessToken: userToken,
+    });
+    store.commit('SET_MNID', {
+      mnId: mid,
+    });
+    store.commit('SET_STEP', {
+      currentStep: 1,
+    });
+    res.send(true);
+  }else{
+    res.send(false);
+  }
 });
 
 

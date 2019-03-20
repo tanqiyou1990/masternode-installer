@@ -63,7 +63,9 @@ export default {
     },
   },
   methods: {
-    //向账户充值1000VP
+    /**
+     * 向账户充值10000VP
+     */
     sendVP(){
       client
         .getNewAddress("MN启动金-"+this.mnName)
@@ -73,7 +75,7 @@ export default {
             let param = {
               address:address,
               amount:'10000.1',
-              mid:this.mnId,
+              mid:this.$store.state.Information.mnId,
               type:'1'
             };
             axios.post(`${this.$store.state.Information.baseUrl}/vp/transaction`,param,{
@@ -85,7 +87,7 @@ export default {
                 if(response.data.success){
 
                   //如果当前余额足够，则可以提前进行主节点安装
-                  if(Number(this.$store.state.Wallet.balance)>=1000.1){
+                  if(Number(this.$store.state.Wallet.balance)>=10000.1){
                     this.loadmsg="启动金发放成功..."
                     setTimeout(() => {
                       console.log("余额足够，提前安装");
@@ -115,7 +117,9 @@ export default {
             },5000);
           });
     },
-    //获取待安装列表
+    /**
+     * 获取节点信息
+     */
     getNodeInfo(){
       this.loadding = true;
       this.loadmsg = "加载主节点信息...";
@@ -154,7 +158,7 @@ export default {
             if(Number(response.data.confirmations)>=6){
               this.getCurrentBalance();
               setTimeout(() => {
-                if(Number(this.$store.state.Wallet.balance)>=1000.1){
+                if(Number(this.$store.state.Wallet.balance)>=10000.1){
                   console.log("余额大于1000.1");
                   this.getCurrentMasternodes();
                 }else{
@@ -180,6 +184,9 @@ export default {
           }, 5000); 
         });
     },
+    /**
+     * 开始安装
+     */
     installVps(){
       this.$store.commit('SET_MNID', {
         mnId: this.insertNode.id,
@@ -219,6 +226,9 @@ export default {
           }, 1000); 
         });
     },
+    /**
+     * 对比已经配置的主节点信息得到可用的主节点信息
+     */
     compareMasternodes() {
       axios.post('http://127.0.0.1:11772/', {
         jsonrpc: '1.0',
@@ -233,32 +243,31 @@ export default {
           password: '999000',
         },
       }).then((response) => {
-        // eslint-disable-next-line
-        for (const key in response.data.result) {
-          // eslint-disable-next-line
-          if (response.data.result.hasOwnProperty(key)) {
-            this.outputs.push({
-              txid: key,
-              txnumber: response.data.result[key],
-            });
-          }
-        }
+        console.log("outputs:",response);
+        // // eslint-disable-next-line
+        // for (const key in response.data.result) {
+        //   // eslint-disable-next-line
+        //   if (response.data.result.hasOwnProperty(key)) {
+        //     this.outputs.push({
+        //       txhash: key,
+        //       outputidx: response.data.result[key],
+        //     });
+        //   }
+        // }
+        this.outputs = response.data.result;
 
         if (this.outputs.length) {
           for(let i =0;i<this.outputs.length;i++){
-           let isAvailable = true;
+            let isAvailable = true;
             for(let j=0;j<this.currentMasternodes.length;j++){
-              if(String(this.currentMasternodes[j].txid)===String(this.outputs[i].txid) 
-              && Number(this.currentMasternodes[j].txnumber)===Number(this.outputs[i].txnumber)){
-                // console.log(this.outputs[i].txid,this.outputs[i].txnumber,this.currentMasternodes[j].txid,this.currentMasternodes[j].txnumber,"相等");
+              if(this.currentMasternodes[j]!=null&&this.currentMasternodes[j]!=''&&this.currentMasternodes[j]!=undefined&&(String(this.currentMasternodes[j].txhash)===String(this.outputs[i].txhash) 
+              && Number(this.currentMasternodes[j].outputidx)===Number(this.outputs[i].outputidx))){
                 isAvailable=false
                 break;
               }
-              // console.log(this.outputs[i].txid,this.outputs[i].txnumber,this.currentMasternodes[j].txid,this.currentMasternodes[j].txnumber,"不等");
             }
 
             if(isAvailable){
-              // console.log("加入：",this.outputs[i]);
               this.availableMasternodesToInstall.push(this.outputs[i]);
             }
           }
@@ -266,8 +275,8 @@ export default {
           // Double filtering with different methods. Removing duplicates.
           this.availableMasternodesToInstall = this.availableMasternodesToInstall
             .filter((masternode, index, self) =>
-              index === self.findIndex(t => t.txid === masternode.txid &&
-                t.txnumber === masternode.txnumber),
+              index === self.findIndex(t => t.txhash === masternode.txhash &&
+                t.outputidx === masternode.outputidx),
             );
           
           console.log("availableMasternodesToInstall:",this.availableMasternodesToInstall);
@@ -286,7 +295,7 @@ export default {
     comparer(otherArray) {
       return current => otherArray
         // eslint-disable-next-line
-        .filter(other => other.txid == current.txid && other.txnumber == current.txnumber)
+        .filter(other => other.txhash == current.txhash && other.outputidx == current.outputidx)
         .length === 0;
     },
     getOuputsFromTxId(txId) {
@@ -294,8 +303,8 @@ export default {
       // eslint-disable-next-line
       for (let i = 1; i <= Number(this.masternodesToInstall); i += 1) {
         this.availableMasternodesToInstall.push({
-          txid: txId,
-          txnumber: i,
+          txhash: txId,
+          outputidx: i,
         });
       }
       console.log('Outputs found', this.availableMasternodesToInstall);
@@ -315,13 +324,13 @@ export default {
         });
 
         //获取txid对应的account
-        axios.get(`https://pl.vpubchain.net/api/getrawtransaction?txid=${output[0].txid}&decrypt=1`)
+        axios.get(`https://pl.vpubchain.net/api/getrawtransaction?txid=${output[0].txhash}&decrypt=1`)
           .then((response) => {
 
           let outlist = response.data.vout;
           console.log(outlist);
           if(outlist!=null&&outlist.length>0){
-            outlist=outlist.filter(item => item.value==1000||item.value=='1000');
+            outlist=outlist.filter(item => item.value==10000||item.value=='10000');
           }
           if(outlist!=null){
             this.$store.commit('SET_MNACCOUNT', {
@@ -356,12 +365,12 @@ export default {
             console.log('New Address Generated', address);
             console.log('accounts to generate', accountsToGenerate);
             const baseaddress = address;
-            // Send 1000 VP
+            // Send 10000 VP
             client
               .sendToAddress(baseaddress,
-                accountsToGenerate === 1 ? 1000 : ((accountsToGenerate * 1000) + 1))
-              .then((txid) => {
-                console.log('basetxid', txid);
+                accountsToGenerate === 1 ? 10000 : ((accountsToGenerate * 10000) + 1))
+              .then((txhash) => {
+                console.log('basetxid', txhash);
                 this.$store.commit('SET_MNACCOUNT', {
                   mnAccount: address,
                 });
@@ -378,15 +387,15 @@ export default {
                       const sendAddresses = {};
 
                       wallets.forEach((wallet) => {
-                        sendAddresses[wallet] = 1000;
+                        sendAddresses[wallet] = 10000;
                       });
 
                       client
                         .sendMany(`${this.mnName}base`, sendAddresses, 0)
-                        .then((txid) => {
-                          console.log('sendManyTxId', txid);
+                        .then((txhash) => {
+                          console.log('sendManyTxId', txhash);
                           // Restart Install Masternode
-                          this.getOuputsFromTxId(txid);
+                          this.getOuputsFromTxId(txhash);
                         })
                         .catch((error) => {
                           console.error('Error sending mn funds', error);
@@ -403,6 +412,9 @@ export default {
           });
       }
     },
+    /**
+     * 获取当前已经配置的主节点信息存入currentMasternodes
+     */
     readCurrentMasternodes(path) {
       fs.readFile(path, 'utf8', (err, data) => {
         if (err) throw err;
@@ -410,14 +422,16 @@ export default {
         this.currentMasternodes = lines
           .filter(line => line[0] !== '#')
           .map((line) => {
+            console.log("line:",line);
             const parts = line.split(' ');
-            if(parts[0]!=null&&parts[0]!=''){
+            let tempStr = line.replace(/\s+/g,"");
+            if(tempStr!=null&&tempStr!=''&&parts[0]!=null&&parts[0]!=''){
               return {
                 name: parts[0],
                 ip: parts[1],
                 privkey: parts[2],
-                txid: parts[3],
-                txnumber: parts[4],
+                txhash: parts[3],
+                outputidx: parts[4],
               };
             }
           });
@@ -427,6 +441,9 @@ export default {
         this.compareMasternodes();
       });
     },
+    /**
+     * 获取当前已经配置的主节点
+     */
     getCurrentMasternodes() {
       let datadirPath = this.$store.state.Information.mnConfPath;
 
