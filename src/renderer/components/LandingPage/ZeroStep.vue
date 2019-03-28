@@ -51,11 +51,11 @@ export default {
     getBlockCount() {
       this.loadding = true;
       this.loadmsg = "正在获取区块信息...";
-      axios.get('https://pl.vpubchain.net/api/getblockcount')
+      axios.get(`${this.$store.state.Information.baseUrl}/vp/getblockcount`)
         .then((response) => {
           this.loadding = false;
-          console.log("当前区块高度:"+response.data);
-          this.blockCount = Number(response.data);
+          console.log("当前区块高度:"+response.data.data);
+          this.blockCount = Number(response.data.data);
           this.checkIfWalletIsLoaded();
         }).catch((err) => {
           console.log("获取区块高度失败，5s重新获取");

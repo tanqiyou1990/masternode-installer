@@ -70,9 +70,9 @@ export default {
                   }, 5000);
                 } else if (this.vpsInstance.currentVpsStep === 3) {
                   this.vpsInstance.currentStatus = '正在启动客户端程序...';
-                  axios.get('https://pl.vpubchain.net/api/getblockcount')
+                  axios.get(`${this.$store.state.Information.baseUrl}/vp/getblockcount`)
                     .then((response) => {
-                      this.totalBlocks = Number(response.data);
+                      this.totalBlocks = Number(response.data.data);
                       setTimeout(() => {
                         this.lookForIp();
                       }, 5000);
