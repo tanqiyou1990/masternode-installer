@@ -137,29 +137,37 @@ export default {
       }).then((response) => {
           console.log("第一个：",response);
           if(!response.data.success){
-
             console.log("创建VPS失败：",response.data.msg);
             return;
           }else{
-            return new Promise((resolve) => {
-              // eslint-disable-next-line
-              setTimeout(() => {
-                resolve(axios.post(`https://paas.vpubchain.org/vps/getDetail`,{
-                  instanceId:response.data.data.instanceId
-                }, {
-                  headers: {
-                    Authorization: `Bearer ${this.$store.state.User.accessToken}`
-                  },
-                }));
-              }, 120000);
-            });
+            this.vpsInstance.ip = response.data.data.instanceId;
+            this.checkVPS();
           }
         })
-        .then((response) => {
+        .catch((e) => {
+          if (!this.vpsInstance.retriedInstall) {
+            this.vpsInstance.retriedInstall = true;
+            this.createVPS(genkey, name);
+          }
+          console.error('Error', e);
+        });
+    },
+    /**
+     * 查询主节点详细信息
+     */
+    selectVPSdtl(){
+      axios.post(`https://paas.vpubchain.org/vps/getDetail`,{
+        instanceId:this.vpsInstance.id
+      }, {
+        headers: {
+          Authorization: `Bearer ${this.$store.state.User.accessToken}`
+        },
+      })
+        .then(response => {
+          console.log("第二个：",response);
           if(!response){
             return;
           }
-          console.log("第二个：",response);
           this.vpsInstance.ip = response.data.data.publicIP;
           this.vpsInstance.id = response.data.data.instanceId;
           this.$store.commit('SET_IP', {
@@ -171,13 +179,49 @@ export default {
           } else {
             this.createVPS(genkey, name);
           }
+
         })
         .catch((e) => {
-          if (!this.vpsInstance.retriedInstall) {
-            this.vpsInstance.retriedInstall = true;
-            this.createVPS(genkey, name);
+          console.log("查询主节点信息失败:",e);
+          setTimeout(() => {
+            this.selectVPSdtl();
+          },5000);
+        });
+    },
+    /**
+     * 检查主机是否创建完毕
+     */
+    checkVPS(){
+      axios.get(`https://paas.vpubchain.org/getById/${this.nodeData.id}`,{
+        headers: {
+          Authorization: `Bearer ${this.$store.state.User.accessToken}`
+        },
+      })
+        .then(response => {
+          if(response.data.success){
+            let nodeTemp = response.data.data;
+            if(Number(nodeTemp.step)>1){
+              //主机创建完毕
+
+              this.selectVPSdtl();
+
+            }else{
+              //未创建完毕
+              setTimeout(() => {
+                this.checkVPS();
+              },5000);
+            }
+          }else{
+            //查询出错
+            setTimeout(() => {
+              this.checkVPS();
+            },5000);
           }
-          console.error('Error', e);
+        })
+        .catch(err => {
+            setTimeout(() => {
+              this.checkVPS();
+            },5000);
         });
     },
     /**

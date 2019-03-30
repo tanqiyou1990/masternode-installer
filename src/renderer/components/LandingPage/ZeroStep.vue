@@ -240,7 +240,7 @@ export default {
               currentStep: 1,
             });
           }else{
-            this.loadmsg="未找到待安装的节点!"
+            this.loadmsg="主节点已安装完毕!"
             this.loadding=true;
             this.$store.commit('SET_INSTALL_STATUS', {
               isInstalling: false,

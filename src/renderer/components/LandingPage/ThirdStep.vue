@@ -304,14 +304,14 @@ export default {
             }
           }else{
             //获取主节点状态失败
-            this.loadmsg="获取主节点状态失败，5s后重试...";
+            this.loadmsg="主节点激活中，请稍等...";
             setTimeout(() => {
               this.activateMasterNode();
             },5000);
           }
         })
         .catch(err => {
-            this.loadmsg="获取主节点状态发生错误，5s后重试...";
+            this.loadmsg="主节点激活中，请稍等...";
             setTimeout(() => {
               this.activateMasterNode();
             },5000);          
