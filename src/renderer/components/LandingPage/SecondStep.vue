@@ -192,7 +192,7 @@ export default {
      * 检查主机是否创建完毕
      */
     checkVPS(){
-      axios.get(`https://paas.vpubchain.org/getById/${this.nodeData.id}`,{
+      axios.get(`https://paas.vpubchain.org/bsMasternode/getById/${this.nodeData.id}`,{
         headers: {
           Authorization: `Bearer ${this.$store.state.User.accessToken}`
         },
