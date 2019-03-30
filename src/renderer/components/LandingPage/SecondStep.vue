@@ -45,7 +45,7 @@ export default {
                 }else{
                   this.vpsInstance.currentVpsStep = 0;
                 }
-                this.vpsInstance.progress = 7.69 * this.vpsInstance.currentVpsStep;
+                this.vpsInstance.progress = 25 * this.vpsInstance.currentVpsStep;
                 if (this.vpsInstance.currentVpsStep === 99) {
                   this.vpsInstance.currentStatus = '正在转入主节点押金...';
                   setTimeout(() => {
@@ -140,7 +140,7 @@ export default {
             console.log("创建VPS失败：",response.data.msg);
             return;
           }else{
-            this.vpsInstance.ip = response.data.data.instanceId;
+            this.vpsInstance.id = response.data.data.instanceId;
             this.checkVPS();
           }
         })
@@ -174,10 +174,10 @@ export default {
             ip: this.vpsInstance.ip,
           });
           if (this.vpsInstance.ip) {
-            this.updateMnStaus(this.vpsInstance.id,this.vpsInstance.ip,genkey,this.$store.state.Information.output.txhash,this.$store.state.Information.output.outputidx);
+            this.updateMnStaus(this.vpsInstance.id,this.vpsInstance.ip,this.$store.state.Information.genkey,this.$store.state.Information.output.txhash,this.$store.state.Information.output.outputidx);
             this.lookForIp();
           } else {
-            this.createVPS(genkey, name);
+            this.createVPS(this.$store.state.Information.genkey, `vpub-${this.nodeData.nodeName}`);
           }
 
         })

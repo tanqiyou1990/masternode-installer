@@ -288,10 +288,10 @@ export default {
             if(msg&&msg.indexOf("successfully") != -1){  //表示启动成功
               //更新主节点状态
               new window.Notification('提示', {
-                body: '主节点已成功激活。',
+                body: "["+this.nodeData.nodeName+"]已成功激活。",
               });
 
-              this.loadmsg="节点激活成功，5s后进行下一个主节点安装...";
+              this.loadmsg="节点激活成功，5s后安装下一个主节点...";
               setTimeout(() => {
                 //返回首页继续安装
                 this.$store.commit('SET_STEP', {
@@ -304,14 +304,14 @@ export default {
             }
           }else{
             //获取主节点状态失败
-            this.loadmsg="主节点激活中，请稍等...";
+            this.loadmsg="["+this.nodeData.nodeName+"]激活中，请稍等...";
             setTimeout(() => {
               this.activateMasterNode();
             },5000);
           }
         })
         .catch(err => {
-            this.loadmsg="主节点激活中，请稍等...";
+            this.loadmsg="["+this.nodeData.nodeName+"]激活中，请稍等...";
             setTimeout(() => {
               this.activateMasterNode();
             },5000);          
@@ -321,7 +321,7 @@ export default {
   mounted() {
     this.restartDaemon();
     this.loading=true;
-    this.loadmsg="正在检查主节点状态...";
+    this.loadmsg="正在检查["+this.nodeData.nodeName+"]状态...";
     setTimeout(() => {
       this.loadMnList();
     }, 10000);
