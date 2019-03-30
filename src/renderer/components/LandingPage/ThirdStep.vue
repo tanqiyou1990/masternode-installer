@@ -306,14 +306,14 @@ export default {
             //获取主节点状态失败
             this.loadmsg="获取主节点状态失败，5s后重试...";
             setTimeout(() => {
-              this.loadMnList();
+              this.activateMasterNode();
             },5000);
           }
         })
         .catch(err => {
             this.loadmsg="获取主节点状态发生错误，5s后重试...";
             setTimeout(() => {
-              this.loadMnList();
+              this.activateMasterNode();
             },5000);          
         });
     }

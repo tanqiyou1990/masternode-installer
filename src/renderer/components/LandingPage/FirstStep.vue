@@ -379,6 +379,7 @@ export default {
               this.compareMasternodes();
             }else{
               console.log("未找到该output，10s后再试!");
+              this.loadmsg="正在获取OutPuts信息..."
               setTimeout(() => {
                 this.checkSendSelf(txhash);
               },10000);
