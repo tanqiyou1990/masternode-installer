@@ -31,7 +31,6 @@
 import os from 'os';
 import fs from 'fs';
 import axios from 'axios';
-import { setTimeout } from 'timers';
 const Client = require('@vpubevo/vpub-core');
 const client = new Client({
   username: 'mn',
@@ -42,12 +41,8 @@ const client = new Client({
 export default {
   data() {
     return {
-      mnCodeName:null,
-      mnName:null,
-      isBegin:false,
       loadding:false,
       loadmsg:'',
-      insertNode:{},
       outputs: [],
       availableMasternodesToInstall: [],
       currentMasternodes: null,
@@ -61,149 +56,110 @@ export default {
     balance() {
       return this.$store.state.Wallet.balance;
     },
+    nodeData(){
+      return this.$store.state.InstallNode.nodeData;
+    }
   },
   methods: {
-    /**
-     * 向账户充值10000VP
-     */
-    sendVP(){
-      client
-        .getNewAddress("MN启动金-"+this.mnName)
-          .then((address) => {
-            this.loadding=true;
-            this.loadmsg="正在接收平台启动金，请等待..."
-            let param = {
-              address:address,
-              amount:'10000.1',
-              mid:this.$store.state.Information.mnId,
-              type:'1'
-            };
-            axios.post(`${this.$store.state.Information.baseUrl}/vp/transaction`,param,{
-            headers: {
-              Authorization: `Bearer ${this.$store.state.User.accessToken}`
-            }})
-              .then((response) => {
-                console.log(response);
-                if(response.data.success){
 
-                  //如果当前余额足够，则可以提前进行主节点安装
-                  if(Number(this.$store.state.Wallet.balance)>=10000.1){
-                    this.loadmsg="启动金发放成功..."
-                    setTimeout(() => {
-                      console.log("余额足够，提前安装");
-                      this.getCurrentMasternodes();
-                    }, 3000); 
-                  }else{
-                    this.watchTransinfo(response.data.data.txHash);
-                  }
-                }else{
-                  new window.Notification('错误', {
-                    body: '接收平台启动金失败：'+response.data.msg,
-                  });
-                }
-              })
-              .catch((err) => {
-                new window.Notification('错误', {
-                  body: '接收平台资金出错：'+err,
-                });
-              });
-          })
-          .catch((err) => {
-            new window.Notification('错误', {
-              body: '生成收款地址出错,5s后重试',
-            });
-            setTimeout(() => {
-              this.sendVP();
-            },5000);
-          });
-    },
     /**
-     * 获取节点信息
+     * 向地址发送10000.1VP
      */
-    getNodeInfo(){
-      this.loadding = true;
-      this.loadmsg = "加载主节点信息...";
-      axios.get(`${this.$store.state.Information.baseUrl}/bsMasternode/getById/${this.$store.state.Information.mnId}`,{
-        headers: {
-          Authorization: `Bearer ${this.$store.state.User.accessToken}`
-        }})
+    sendVP(address){
+      //开始转账
+      console.log("#######开始转账#######");
+      this.loadding=true;
+      this.loadmsg="正在接收平台启动金，请等待..."
+      let param = {
+        address:address,
+        amount:'10000.1',
+        mid:this.nodeData.id,
+        type:'1'
+      };
+      axios.post(`${this.$store.state.Information.baseUrl}/vp/transaction`,param,{
+      headers: {
+        Authorization: `Bearer ${this.$store.state.User.accessToken}`
+      }})
         .then((response) => {
-          console.log(response);
-          this.loadding = false;
-          this.insertNode = response.data.data;
-          if(!this.insertNode){
-            new window.Notification('提示', {
-              body: '未找到待安装的主节点记录。',
+          if(response.data.success){
+            this.loadmsg="启动金发放成功..."
+            //开始检查余额
+            this.checkBalance();
+          }else{
+            new window.Notification('错误', {
+              body: '接收平台启动金失败：'+response.data.msg,
             });
-          }else{
-            this.installVps();
-          }
-        }).catch((err) => {
-          console.log(err)
-          this.loadding = false;
-          new window.Notification('错误', {
-            body: '获取待安装主节点信息出错,请检查网络。',
-          });
-          setTimeout(() => {
-            this.getNodeInfo();
-          },500);
-        });
-    },
-    //监控交易信息
-    watchTransinfo(txHash){
-      axios.get(`https://pl.vpubchain.net/api/getrawtransaction?txid=${txHash}&decrypt=1`)
-        .then((response) => {
-          console.log(response);
-          if(response.data.confirmations){
-            if(Number(response.data.confirmations)>=6){
-              this.getCurrentBalance();
-              setTimeout(() => {
-                if(Number(this.$store.state.Wallet.balance)>=10000.1){
-                  console.log("余额大于1000.1");
-                  this.getCurrentMasternodes();
-                }else{
-                  this.watchTransinfo(txHash);
-                }
-              }, 5000);
-            }else{
-              this.loadmsg=`正在接收平台启动金，交易确认中（${response.data.confirmations}/6）...`
-              setTimeout(() => {
-                this.watchTransinfo(txHash);
-              }, 5000); 
-            }
-          }else{
-            setTimeout(() => {
-              this.watchTransinfo(txHash);
-            }, 5000); 
           }
         })
         .catch((err) => {
-          console.log("查询交易信息出错:"+err);
+          new window.Notification('错误', {
+            body: '接收平台资金出错5s后重试：'+err,
+          });
           setTimeout(() => {
-            this.watchTransinfo(txHash);
-          }, 5000); 
+            this.sendVP(address);
+          },5000);
+        });
+    },
+
+    /**
+     * 生成地址接收10000VP
+     */
+    createMnAddress(){
+      client
+      .getNewAddress("MN平台发放启动金-"+this.nodeData.nodeName)
+        .then((address) => {
+          console.log("1.生成接收账户:",address);
+          this.sendVP(address);
+        })
+        .catch((err) => {
+          new window.Notification('错误', {
+            body: '生成收款地址出错,5s后重试',
+          });
+          setTimeout(() => {
+            this.createMnAddress();
+          },5000);
         });
     },
     /**
-     * 开始安装
+     * 检查余额是否足够
      */
-    installVps(){
-      this.$store.commit('SET_MNID', {
-        mnId: this.insertNode.id,
-      }); 
-      this.mnName = this.insertNode.nodeName;
-      this.$store.commit('SET_MNNAME', {
-        mnName: this.mnName,
-      }); 
-      //设置一个主节点CODE，不能有汉字
-      this.mnCodeName = `MN${Math.round(new Date().getTime() / 1000)}`;
-      this.$store.commit('SET_MNCODENAME', {
-        mnCodeName: this.mnCodeName,
-      });
-      this.isBegin=true;
-      //开始转账
-      console.log("#######开始转账#######");
-      this.sendVP();
+    checkBalance(){
+
+      client
+        .listUnspent()
+        .then((unspent) => {
+          let balance = 0;
+          unspent
+            .filter(tx => tx.spendable)
+            .forEach((tx) => {
+              balance += tx.amount;
+            });
+          console.log("当前余额:"+balance);
+          this.$store.commit('SET_BALANCE', {
+            balance:balance
+          });
+          if(Number(this.$store.state.Wallet.balance)>=10000.05){
+            setTimeout(() => {
+              console.log("余额足够，开始安装");
+              //余额足够开始安装
+              this.getCurrentMasternodes();
+            }, 3000); 
+          }else{
+            this.loadmsg="启动金发放成功，等待启动金到账..."
+            setTimeout(() => {
+              this.checkBalance();
+            },2000);
+          }
+
+        })
+        .catch((err) => {
+          console.log("获取余额失败",err);
+          setTimeout(() => {
+            this.checkBalance();
+          },2000);
+        });
+
+
     },
     //获取当前钱包余额
     getCurrentBalance() {
@@ -216,14 +172,13 @@ export default {
             .forEach((tx) => {
               balance += tx.amount;
             });
+          console.log("当前余额:"+balance);
           this.$store.commit('SET_BALANCE', {
-            balance,
+            balance:balance
           });
         })
         .catch((err) => {
-          setTimeout(() => {
-            this.getCurrentBalance();
-          }, 1000); 
+          console.log("获取余额失败",err);
         });
     },
     /**
@@ -244,18 +199,7 @@ export default {
         },
       }).then((response) => {
         console.log("outputs:",response);
-        // // eslint-disable-next-line
-        // for (const key in response.data.result) {
-        //   // eslint-disable-next-line
-        //   if (response.data.result.hasOwnProperty(key)) {
-        //     this.outputs.push({
-        //       txhash: key,
-        //       outputidx: response.data.result[key],
-        //     });
-        //   }
-        // }
         this.outputs = response.data.result;
-
         if (this.outputs.length) {
           for(let i =0;i<this.outputs.length;i++){
             let isAvailable = true;
@@ -278,13 +222,17 @@ export default {
               index === self.findIndex(t => t.txhash === masternode.txhash &&
                 t.outputidx === masternode.outputidx),
             );
-          
-          console.log("availableMasternodesToInstall:",this.availableMasternodesToInstall);
 
-          this.installMasternode();
-        } else {
-          this.installMasternode();
+          if(!this.availableMasternodesToInstall.length){
+            this.sendToSelf();
+          }else{
+            this.installMasternode();
+          }
+
+        } else{
+          this.sendToSelf();
         }
+        console.log("可用的节点信息:",this.availableMasternodesToInstall);
       }).catch((error) => {
         console.error('Error getting the masternode outputs', error);
         setTimeout(() => {
@@ -292,41 +240,13 @@ export default {
         }, 5000);
       });
     },
-    comparer(otherArray) {
-      return current => otherArray
-        // eslint-disable-next-line
-        .filter(other => other.txhash == current.txhash && other.outputidx == current.outputidx)
-        .length === 0;
-    },
-    getOuputsFromTxId(txId) {
-      this.availableMasternodesToInstall = [];
-      // eslint-disable-next-line
-      for (let i = 1; i <= Number(this.masternodesToInstall); i += 1) {
-        this.availableMasternodesToInstall.push({
-          txhash: txId,
-          outputidx: i,
-        });
-      }
-      console.log('Outputs found', this.availableMasternodesToInstall);
-
-      this.installMasternode();
-    },
-    installMasternode() {
-      console.log('Awesome! we can install');
-      console.log(this.availableMasternodesToInstall);
-      if (this.availableMasternodesToInstall &&
-        this.availableMasternodesToInstall.length >= 1) {
-
-        // Get firsts available outputs
-        const output = this.availableMasternodesToInstall.slice(0,1);
-        this.$store.commit('SET_OUTPUT', {
-          output:output[0],
-        });
-
-        //获取txid对应的account
-        axios.get(`https://pl.vpubchain.net/api/getrawtransaction?txid=${output[0].txhash}&decrypt=1`)
-          .then((response) => {
-
+    /**
+     * 根据txId查找交易信息，并获取对应的交易地址
+     */
+    findTxInfo(txhash){
+      //获取txid对应的account
+      axios.get(`https://pl.vpubchain.net/api/getrawtransaction?txid=${txhash}&decrypt=1`)
+        .then((response) => {
           let outlist = response.data.vout;
           console.log(outlist);
           if(outlist!=null&&outlist.length>0){
@@ -334,13 +254,62 @@ export default {
           }
           if(outlist!=null){
             this.$store.commit('SET_MNACCOUNT', {
-                  mnAccount: outlist[0].scriptPubKey.addresses[0],
-                });
+              mnAccount: outlist[0].scriptPubKey.addresses[0],
+            });
           }
-          console.log("主节点配置信息:",this.$store.state.Information);
+        })
+        .catch(err => {
+          console.log("获取交易账户信息失败!",err);
+          setTimeout(() => {
+            this.findTxInfo(txhash);
+          },2000);
+        })
+    },
+    /**
+     * 检查是否满足下一步要求
+     */
+    checkNextStep(){
+      console.log("installNode:",this.$store.state.InstallNode);
+      console.log("information:",this.$store.state.Information);
+      if(
+      this.$store.state.InstallNode.nodeData&&
+      this.$store.state.Information.mnConfPath&&
+      this.$store.state.Information.mnAccount&&
+      this.$store.state.Information.genkey)
+      {
+
+        // Start Installation
+        console.log("满足要求,进入下一步");
+        this.$store.commit('SET_STEP', {
+          currentStep: 2,
         });
-
-
+      }else{
+        console.log("安装过程出现了点错误");
+        this.loadding=true;
+        this.loadmsg="正在检查状态...";
+        setTimeout(() => {
+          this.checkNextStep();
+        },2000);
+      }
+    },
+    /**
+     * 安装主节点
+     */
+    installMasternode() {
+      console.log('Awesome! we can install');
+      console.log(this.availableMasternodesToInstall);
+      if(!this.availableMasternodesToInstall.length){
+        console.log("尚未发现可安装的节点，5s后再次尝试安装");
+        setTimeout(() => {
+          this.installMasternode();
+        },5000);
+      }else{
+        // Get firsts available outputs
+        const output = this.availableMasternodesToInstall.slice(0,1);
+        this.$store.commit('SET_OUTPUT', {
+          output:output[0],
+        });
+        this.findTxInfo(output[0].txhash);
         // Generate Privkeys
         client
           .masternode('genkey')
@@ -349,68 +318,80 @@ export default {
                 this.$store.commit('SET_GENKEY', {
                   genkey:response,
                 });
-                // Start Installation
-                this.$store.commit('SET_STEP', {
-                  currentStep: 2,
-                });
+                this.checkNextStep();
               }
             });
-      } else {
-        console.log('not available masternodes');
-        const accountsToGenerate = Number(this.masternodesToInstall);
-        // Create new wallet
+      }
+    },
+    
+    /**
+     * 质押金发送
+     */
+    sendToSelf(){
         client
-          .getNewAddress(`${this.mnName}base`)
+          .getNewAddress(`${this.nodeData.nodeName}base`)
           .then((address) => {
             console.log('New Address Generated', address);
-            console.log('accounts to generate', accountsToGenerate);
-            const baseaddress = address;
+            console.log('accounts to generate', 1);
             // Send 10000 VP
             client
-              .sendToAddress(baseaddress,
-                accountsToGenerate === 1 ? 10000 : ((accountsToGenerate * 10000) + 1))
+              .sendToAddress(address,10000)
               .then((txhash) => {
-                console.log('basetxid', txhash);
-                this.$store.commit('SET_MNACCOUNT', {
-                  mnAccount: address,
-                });
-                if (accountsToGenerate === 1) {
-                  // Restart Install Masternode
-                  this.compareMasternodes();
-                } else {
-                  const generateAddressesArray = [];
-                  for (let i = 0; i < accountsToGenerate; i += 1) {
-                    generateAddressesArray.push(client.getNewAddress(`${this.mnName}-${i}`));
-                  }
-                  Promise.all(generateAddressesArray)
-                    .then((wallets) => {
-                      const sendAddresses = {};
-
-                      wallets.forEach((wallet) => {
-                        sendAddresses[wallet] = 10000;
-                      });
-
-                      client
-                        .sendMany(`${this.mnName}base`, sendAddresses, 0)
-                        .then((txhash) => {
-                          console.log('sendManyTxId', txhash);
-                          // Restart Install Masternode
-                          this.getOuputsFromTxId(txhash);
-                        })
-                        .catch((error) => {
-                          console.error('Error sending mn funds', error);
-                        });
-                    })
-                    .catch((error) => {
-                      console.error('Error generating the mn wallets', error);
-                    });
-                }
+                console.log('成功质押：', txhash);
+                setTimeout(() => {
+                  this.checkSendSelf(txhash);
+                },20000);
               })
               .catch((error) => {
                 console.log('Error sending funds to base address', error);
               });
           });
-      }
+    },
+    /**
+     * 检查质押是否生效
+     */
+    checkSendSelf(txhash){
+      axios.post('http://127.0.0.1:11772/', {
+          jsonrpc: '1.0',
+          method: 'masternode',
+          params: ['outputs'],
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          auth: {
+            username: 'mn',
+            password: '999000',
+          },
+        }).then((response) => {
+          let opts = response.data.result;
+          console.log("检查outpusts:",opts);
+
+          if(!opts.length){
+            setTimeout(() => {
+              this.checkSendSelf(txhash);
+            },10000);
+          }else{
+
+            opts = opts.filter(item => item.txhash==txhash);
+
+            if(opts.length){
+              this.compareMasternodes();
+            }else{
+              console.log("未找到该output，10s后再试!");
+              setTimeout(() => {
+                this.checkSendSelf(txhash);
+              },10000);
+            }
+
+          }
+        })
+        .catch(err => {
+          console.log("获取output出错!",err);
+          setTimeout(() => {
+            this.checkSendSelf(txhash);
+          },10000);
+        });
     },
     /**
      * 获取当前已经配置的主节点信息存入currentMasternodes
@@ -468,6 +449,9 @@ export default {
         }
       }
     },
+    /**
+     * 判断钱包是否解锁
+     */
     checkForPassphrase() {
       client
         .getInfo()
@@ -483,6 +467,9 @@ export default {
           },1000);
         });
     },
+    /**
+     * 解锁钱包
+     */
     unlockWallet() {
       this.incorrectPassphrase = false;
       client
@@ -500,10 +487,11 @@ export default {
         });
     },
   },
-  mounted() {
-    this.checkForPassphrase();
-    this.getCurrentBalance();
-    this.getNodeInfo();
+  created() {
+    if(this.nodeData!=null){
+      this.checkForPassphrase();
+      this.createMnAddress();
+    }
   },
 };
 </script>

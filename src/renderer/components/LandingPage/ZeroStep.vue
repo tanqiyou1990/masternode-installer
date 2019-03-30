@@ -1,7 +1,7 @@
 <template>
   <div>
 
-    <!-- <div v-if="!isLogin" id="second-step" class = "login">
+    <div v-if="(!accessToken)&&(!loadding)" id="second-step" class = "login">
       <h1>登陆</h1>
       <input type="text" v-model="userTel" name="u" placeholder="手机号码" required="required" />
       <div style="width:100%;height:50px;justify-content: center;">
@@ -14,22 +14,26 @@
         </div>
       </div>
       <button @click="userLogin" class="btn btn-primary btn-block btn-large">登录</button>
-    </div> -->
+    </div>
 
-
+    <div v-if="accessToken&&(!loadding)&&(!isInstalling)" id="second-step" class = "login">
+      <h3>准备就绪，现在开始批量安装主节点!</h3>
+      <br>
+      <br>
+      <button @click="beginInstall" class="btn btn-primary btn-block btn-large">开始安装</button>
+    </div>
 
     <div v-if="loadding" id="second-step">
       <h3>{{loadmsg}}</h3>
       <div class="loading">
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
       </div>
-    </div>  
-
+    </div>
   </div>
 </template>
 
 <script>
-import qs from 'qs';
+import Qs from 'qs';
 import axios from 'axios';
 const remote = require('electron').remote;
 const Client = require('@vpubevo/vpub-core');
@@ -42,12 +46,31 @@ const client = new Client({
 export default {
   data() {
     return {
+      isLogin:false,
       blockCount: 0,
       loadding:false,
       loadmsg:'',
+      userTel:'',
+      msgCode:'',
+      loadTime:0,
+      uninstallNode:{}
     };
   },
+  computed: {
+    isInstalling(){
+      return this.$store.state.Steps.isInstalling;
+    },
+    accessToken(){
+      return this.$store.state.User.accessToken;
+    },
+    isEnvPrepared(){
+      return this.$store.state.Steps.isEnvPrepared;
+    }
+  },
   methods: {
+    /**
+     * 获取区块高度
+     */
     getBlockCount() {
       this.loadding = true;
       this.loadmsg = "正在获取区块信息...";
@@ -64,6 +87,9 @@ export default {
           }, 5000);          
         });
     },
+    /**
+     * 获取本地软件钱包信息
+     */
     checkIfWalletIsLoaded() {
       this.loadding = true;
       this.loadmsg = "正在获取本机客户端信息...";
@@ -78,8 +104,11 @@ export default {
             this.$store.commit('SET_ENVPRE', {
               isEnvPrepared: true,
             });
-            this.loadding=true;
-            this.loadmsg="环境准备完毕,等待用户指令...";
+            
+            if(this.isInstalling&&this.accessToken){
+              this.beginInstall();
+            }
+
           } else {
             this.loadding = true;
             this.loadmsg = "正在同步区块数据...["+response+"/"+this.blockCount+"]"
@@ -94,9 +123,11 @@ export default {
           }, 3000);
         });
     },
-    //获取本地钱包信息
+    /**
+     * 检查客户端软件是否运行
+     */
     checkIfWalletIsAlreadyRunning() {
-      console.log("获取本地前钱包");
+      console.log("获取本地前钱包信息");
       this.loadding = true;
       this.loadmsg = "正在检查核心客户端...";
       setTimeout(() => {
@@ -126,10 +157,102 @@ export default {
             }
           });
       }, 1000);
+    },
+    /**
+     * 登陆
+     */
+    userLogin(){
+      axios.post(`${this.$store.state.Information.baseUrl}/mobile/token`, Qs.stringify({
+          mobile: this.userTel,
+          code: this.msgCode,
+          grant_type: 'mobile',
+          scope: 'server',
+        }),
+        {headers:{
+          'Content-Type':'application/x-www-form-urlencoded',
+          'Authorization':'Basic dnA6dnA='
+          }}
+        )
+        .then(res => {
+          let accessToken = res.data.access_token;
+          this.$store.commit('SET_USERTOKEN', {
+            accessToken: accessToken,
+          });
+          this.isLogin=true;
+        })
+        .catch(error => {
+
+        })
+
+    },
+    /**
+     * 发送验证码
+     */
+    getMsgCode(){
+      if(this.userTel==null||this.userTel==''){
+        new window.Notification('提示', {
+          body: '请输入用户手机号码。',
+        });
+        return;
+      }
+      axios.get(`${this.$store.state.Information.baseUrl}/smsCode/` + this.userTel)
+          .then(res => {
+            if(res.data.data == false) {
+              new window.Notification('提示', {
+                body: '验证码发送失败。',
+              });
+            }else{
+              new window.Notification('提示', {
+                body: '验证码发送成功。',
+              });
+            }
+          })
+
+
+    },
+    /**
+     * 开始批量安装
+     */
+    beginInstall(){
+      if(!this.accessToken){
+        new window.Notification('提示', {
+          body: '尚未登陆。',
+        });
+        return;
+      }
+
+      axios.get(`${this.$store.state.Information.baseUrl}/bsMasternode/getOneUninstallNode`,{
+        headers: {
+          Authorization: `Bearer ${this.$store.state.User.accessToken}`
+        }})
+        .then(res => {
+          console.log(res);
+          if(res.data.data){
+            this.uninstallNode = res.data.data;
+            this.$store.commit('SET_NODEDATA', {
+              nodeData: this.uninstallNode,
+            });
+            console.log("开始批量安装主节点");
+            this.$store.commit('SET_INSTALL_STATUS', {
+              isInstalling: true,
+            });
+            this.$store.commit('SET_STEP', {
+              currentStep: 1,
+            });
+          }else{
+            this.loadmsg="未找到待安装的节点!"
+            this.loadding=true;
+            this.$store.commit('SET_INSTALL_STATUS', {
+              isInstalling: false,
+            });
+            this.$store.commit('SET_NODEDATA', {
+              nodeData: null,
+            });
+          }
+        });
     }
   },
   mounted() {
-
     this.checkIfWalletIsAlreadyRunning();
   },
 };

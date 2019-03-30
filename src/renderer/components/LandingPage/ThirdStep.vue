@@ -2,14 +2,14 @@
   <div id="step-three">
 
     <div v-if="myNode" style='width:100%;margin-bottom:25px;font-family:"Microsoft YaHei",微软雅黑,"MicrosoftJhengHei",华文细黑,STHeiti,MingLiu'>
-      <p>节点名称:{{$store.state.Information.mnName}}</p>
-      <p>节点编码:{{myNode.alias}}</p>
+      <p>节点名称:{{$store.state.InstallNode.nodeData.nodeName}}</p>
       <p>节点状态:
         <span v-if="myNode.status=='PRE_ENABLED'" style="color:#FF4500;">{{myNode.status|mnStatus}}</span>
         <span v-if="myNode.status=='ENABLED'" style="color:#32CD32;">{{myNode.status|mnStatus}}</span>
         <span v-if="myNode.status=='NEW_START_REQUIRED'" style="color:#FFFF00;">{{myNode.status|mnStatus}}</span>
         <span v-if="myNode.status=='EXPIRED'" style="color:#FF0000;">{{myNode.status|mnStatus}}</span>
         <span v-if="myNode.status=='MISSING'" style="color:#F8F8FF;">{{myNode.status|mnStatus}}</span>
+        <span v-if="myNode.status=='ACTIVE'" style="color:#FFD700;">{{myNode.status|mnStatus}}</span>
       </p>
     </div>
 
@@ -69,30 +69,32 @@ export default {
         case 'MISSING':
           return '未启动';
           break;
+        case 'ACTIVE':
+          return '激活中';
+          break;
         default:
-          return '';
+          return '未知状态';
           break;
       }
     }
   },
   computed: {
-    mnCodeName() {
-      return this.$store.state.Information.mnCodeName;
-    },
     passphrase() {
       return this.$store.state.Wallet.passphrase;
     },
+    nodeData(){
+      return this.$store.state.InstallNode.nodeData;
+    }
   },
   methods: {
     /**
      * 激活主节点
      */
     activateMasterNode() {
-
       axios.post('http://127.0.0.1:11772/', {
           jsonrpc: '1.0',
           method: 'startmasternode',
-          params: ['alias','false',this.mnCodeName],
+          params: ['alias','false',this.nodeData.nodeName],
         }, {
           headers: {
             'Content-Type': 'application/json',
@@ -152,14 +154,28 @@ export default {
     /**
      * 重启客户端程序
      */
-    restartDaemon(exeType) {
+    restartDaemon() {
       console.log("重启节点");
       client
         .stop()
         .then(() => {
           this.confVpub();
           setTimeout(() => {
-            execFile(`${path.join(__static, `/daemon/${os.platform()}/${exeType}`).replace('app.asar', 'app.asar.unpacked')}`, ['-daemon', '-rpcuser=mn', '-rpcpassword=999000','-rpcport=11772','-server=1','-rpcallowip=127.0.0.1',`-datadir=${this.$store.state.Information.mnConfPath}`]);
+              execFile(`${path.join(__static, `/daemon/${os.platform()}/vpubd`)
+                .replace('app.asar', 'app.asar.unpacked')}`,
+              ['-rpcuser=mn', '-rpcpassword=999000','-rpcport=11772','-rpcallowip=127.0.0.1','-server=1', `-datadir=${this.$store.state.Information.mnConfPath}`],
+              (error, stdout, stderr) => {
+                if (error) {
+                  console.log("启动出错");
+                  setTimeout(() => {
+                    //尝试关闭客户端
+                    console.log("尝试关闭客户端");
+                    this.closeDaemon();
+                  }, 10000);
+                }
+                console.log(stderr);
+                console.log(stdout);
+              });
           }, 3000);
         });
     },
@@ -256,93 +272,59 @@ export default {
      * 获取当前节点状态
      */
     loadMnList(){ 
-      axios.post('http://127.0.0.1:11772/', {
-          jsonrpc: '1.0',
-          method: 'masternode',
-          params: ['list-conf'],
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          auth: {
-            username: 'mn',
-            password: '999000',
-          },
-        })
-        .then((data) => {
-          console.log(data);
-          let mnStr = data.request.responseText;
-          mnStr = mnStr.replace('{"masternode":','['); 
-          mnStr = mnStr.replace('},"error"','],"error"'); 
-          mnStr = mnStr.replace(/"masternode":/g,''); 
-          let mnJson = JSON.parse(mnStr); 
-          console.log("JSON:",mnJson);
-          console.log("mnCodeName",this.mnCodeName);
-          let currentConfs=mnJson.result.filter(item => item.alias==this.mnCodeName);
-          console.log("currentConfs",currentConfs);
-          if(currentConfs==null||currentConfs.length==0){
-            console.log("未找到该主节点信息");
-            return;
-          }
-          this.myNode = currentConfs[0];
-          console.log("当前主节点状态",this.myNode);
-          let ip = this.myNode.address.replace(":11771","");
-          switch (this.myNode.status) {
-            case "ENABLED":
+      axios.get(`${this.$store.state.Information.baseUrl}/vp/getMyNodeStatus/${this.nodeData.id}`,{
+      headers: {
+        Authorization: `Bearer ${this.$store.state.User.accessToken}`
+      }})
+        .then(response => {
+          if(response.data.success){
+            //成功获取到主节点状态信息
+            let rpcStatus = response.data.data;
+
+            console.log(rpcStatus);
+
+            let msg = rpcStatus.message;
+
+            if(msg&&msg.indexOf("successfully") != -1){  //表示启动成功
               //更新主节点状态
               new window.Notification('提示', {
                 body: '主节点已成功激活。',
               });
-              this.loading=false;
-              this.finished=true;
-              this.$store.commit('SET_INSTALL_STATUS', {
-                isInstalling: false,
-              });
-              break;
 
-            case "PRE_ENABLED":
-              this.loadmsg="正在激活，这可能需要较长时间[约2小时]，请不要关闭程序";
+              this.loadmsg="节点激活成功，5s后进行下一个主节点安装...";
               setTimeout(() => {
-                this.loadMnList();
-              }, 5000);
-              break;
-
-            case "NEW_START_REQUIRED":
+                //返回首页继续安装
+                this.$store.commit('SET_STEP', {
+                  currentStep: 0,
+                });
+              },5000);
+            }else{
               //启动节点
               this.activateMasterNode();
-              break;
-
-            case "EXPIRED":
-              //启动节点
-              this.activateMasterNode();
-              break;
-
-            case "MISSING":
-              //启动节点
-              this.activateMasterNode();
-              break;
-
-            default:
-              setTimeout(() => {
-                this.loadMnList();
-              }, 5000);
-              break;
+            }
+          }else{
+            //获取主节点状态失败
+            this.loadmsg="获取主节点状态失败，5s后重试...";
+            setTimeout(() => {
+              this.loadMnList();
+            },5000);
           }
         })
-        .catch((err) => {
-          setTimeout(() => {
+        .catch(err => {
+            this.loadmsg="获取主节点状态发生错误，5s后重试...";
+            setTimeout(() => {
               this.loadMnList();
-            }, 5000);
+            },5000);          
         });
     }
   },
   mounted() {
-    this.restartDaemon("vpubd");
+    this.restartDaemon();
     this.loading=true;
     this.loadmsg="正在检查主节点状态...";
     setTimeout(() => {
       this.loadMnList();
-    }, 5000);
+    }, 10000);
   },
 };
 </script>

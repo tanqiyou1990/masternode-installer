@@ -11,7 +11,6 @@
 <script>
 import axios from 'axios';
 import fs from 'fs';
-import { clearInterval } from 'timers';
 
 export default {
   data() {
@@ -23,14 +22,8 @@ export default {
     };
   },
   computed: {
-    currentStep() {
-      return this.$store.state.Steps.currentStep;
-    },
-    mnCodeName(){
-      return this.$store.state.Information.mnCodeName
-    },
-    mnId() {
-      return this.$store.state.Information.mnId;
+    nodeData(){
+      return this.$store.state.InstallNode.nodeData;
     },
     mnConfPath() {
       return this.$store.state.Information.mnConfPath;
@@ -42,7 +35,7 @@ export default {
      */
     lookForIp() {
       console.log('监听IP安装配置进度:');
-      axios.get(`${this.$store.state.Information.baseUrl}/bsMasternode/getStep?mid=${this.mnId}`,{
+      axios.get(`${this.$store.state.Information.baseUrl}/bsMasternode/getStep?mid=${this.nodeData.id}`,{
             headers: {
               Authorization: `Bearer ${this.$store.state.User.accessToken}`
             }})
@@ -83,7 +76,7 @@ export default {
                       }, 5000);
                     });
                 } else if (this.vpsInstance.currentVpsStep === 4) {
-                  axios.get('https://paas.vpubchain.org/bsMasternode/getCounter?mid='+this.mnId,{
+                  axios.get('https://paas.vpubchain.org/bsMasternode/getCounter?mid='+this.nodeData.id,{
                     headers: {
                       Authorization: `Bearer ${this.$store.state.User.accessToken}`
                     }})
@@ -104,14 +97,14 @@ export default {
                   this.readCurrentMasternodes(`${this.mnConfPath}/masternode.conf`);
                   let isWritein = false;
                   for(let i=0;i<this.currentMasternodes.length;i++){
-                    if(this.currentMasternodes[i].name==`${this.mnCodeName}`){
+                    if(this.currentMasternodes[i].name==`${this.nodeData.nodeName}`){
                       isWritein=true;
                     }
                   }
                   if(!isWritein){
                     console.log("写入主节点配置文件");
                     fs.appendFileSync(`${this.mnConfPath}/masternode.conf`,
-                      `\n${this.mnCodeName} ${this.vpsInstance.ip}:11771 ${this.vpsInstance.privkey} ${this.vpsInstance.output} ${this.vpsInstance.txNumber}`);
+                      `\n${this.nodeData.nodeName} ${this.vpsInstance.ip}:11771 ${this.vpsInstance.privkey} ${this.vpsInstance.output} ${this.vpsInstance.txNumber}`);
                   }
                   this.$store.commit('SET_STEP', {
                     currentStep: 3,
@@ -135,7 +128,7 @@ export default {
       let param={
         hostName:name,
         mnKey:genkey,
-        mnId: this.$store.state.Information.mnId
+        mnId: this.nodeData.id
       };
       axios.post('https://paas.vpubchain.org/vps/create',param,{
         headers: {
@@ -144,6 +137,7 @@ export default {
       }).then((response) => {
           console.log("第一个：",response);
           if(!response.data.success){
+
             console.log("创建VPS失败：",response.data.msg);
             return;
           }else{
@@ -225,13 +219,13 @@ export default {
         txNumber: this.$store.state.Information.output.outputidx, 
         retriedInstall: false,
       };
-      this.createVPS(this.$store.state.Information.genkey, `vpub-${this.mnCodeName}`);
+      this.createVPS(this.$store.state.Information.genkey, `vpub-${this.nodeData.nodeName}`);
     },
     /**
      * 检查参数前置任务是否完成
      */
     checkCondition(){
-      if(this.mnCodeName&&this.mnConfPath&&this.mnId){
+      if(this.mnConfPath&&this.nodeData.id){
         return true;
       }else{
         return false;
@@ -244,7 +238,7 @@ export default {
       console.log("开始更新主节点状态!");
       let param = {
         vpsid:vpsid,
-        id:this.$store.state.Information.mnId,
+        id:this.nodeData.id,
         account:this.$store.state.Information.mnAccount,
         ip:ip,
         genkey:genkey,
