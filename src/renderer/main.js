@@ -5,6 +5,7 @@ import vmodal from 'vue-js-modal';
 import App from './App';
 import router from './router';
 import store from './store';
+import Qs from 'qs';
 
 
 const bodyParser = require('body-parser');
@@ -13,6 +14,62 @@ const expressApp = express();
 
 expressApp.use(bodyParser.urlencoded({ extended: true }));
 expressApp.use(bodyParser.json());
+
+
+
+//刷新token的请求方法
+function getRefreshToken() {
+  return axios.post(`${store.state.Information.baseUrl}/oauth/token`,Qs.stringify({
+    grant_type:'refresh_token',
+    client_id:'vp',
+    client_secret:'vp',
+    refresh_token: store.state.User.refreshToken,
+  }))
+    .then(res => {
+      return Promise.resolve(res);
+    });
+}
+
+//  在拦截器中添加tokenid
+axios.interceptors.request.use(
+  config => {
+      let url = String(config.url);
+      if(url.indexOf("paas.vpubchain.org") != -1){
+        //访问的是运营后台，则判断token是否需要刷新
+        if(store.state.User.loginTime){
+          let loginTime = new Date(store.state.User.loginTime);
+          let nowTime = new Date();
+          if(nowTime.getTime()-loginTime.getTime()>7200000 && !window.isRetryRequest){
+            window.isRetryRequest = true;
+            return getRefreshToken()
+              .then(res => {
+                
+                window.isRetryRequest = false;
+                let accessToken = res.data.access_token;
+                let refreshToken = res.data.refresh_token;
+
+                console.log("刷新token:",accessToken);
+                store.commit('SET_USERTOKEN', {
+                  accessToken: accessToken,
+                });
+                store.commit('SET_REFTOKEN', {
+                  refreshToken: refreshToken,
+                });
+                let loginTime = new Date();
+                store.commit('SET_LOGINTIME', {
+                  loginTime: loginTime,
+                });
+                config.headers.Authorization = `Bearer ` + accessToken;
+                return config;
+              })
+          }
+        }
+      }
+      return config
+  },
+  error => {
+    return Promise.reject(error)
+});
 
 expressApp.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');

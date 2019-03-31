@@ -175,8 +175,17 @@ export default {
         )
         .then(res => {
           let accessToken = res.data.access_token;
+          let refreshToken = res.data.refresh_token;
+
           this.$store.commit('SET_USERTOKEN', {
             accessToken: accessToken,
+          });
+          this.$store.commit('SET_REFTOKEN', {
+            refreshToken: refreshToken,
+          });
+          let loginTime = new Date();
+          this.$store.commit('SET_LOGINTIME', {
+            loginTime: loginTime,
           });
           this.isLogin=true;
         })
