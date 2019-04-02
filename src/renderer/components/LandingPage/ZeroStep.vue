@@ -240,7 +240,7 @@ export default {
             this.$store.commit('SET_NODEDCOUNT',{
               count:res.data.data.count
             });
-            
+
             if(res.data.data.count>0){
               this.uninstallNode = res.data.data.node;
               this.$store.commit('SET_NODEDATA', {
@@ -255,7 +255,7 @@ export default {
                 currentStep: 1,
               });
             }else{
-              this.loadmsg="主节点已安装完毕!"
+              this.loadmsg="没有可安装的主节点!"
               this.loadding=true;
               this.$store.commit('SET_INSTALL_STATUS', {
                 isInstalling: false,
@@ -266,7 +266,7 @@ export default {
             }
 
           }else{
-            this.loadmsg="主节点已安装完毕!"
+            this.loadmsg="没有可安装的主节点!"
             this.loadding=true;
             this.$store.commit('SET_INSTALL_STATUS', {
               isInstalling: false,
