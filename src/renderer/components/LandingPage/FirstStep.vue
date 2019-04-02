@@ -328,6 +328,7 @@ export default {
      * 质押金发送
      */
     sendToSelf(){
+      this.loadmsg="正在准备质押金...";
         client
           .getNewAddress(`${this.nodeData.nodeName}base`)
           .then((address) => {
@@ -344,6 +345,9 @@ export default {
               })
               .catch((error) => {
                 console.log('Error sending funds to base address', error);
+                setTimeout(() => {
+                  this.sendToSelf();
+                },5000);
               });
           });
     },

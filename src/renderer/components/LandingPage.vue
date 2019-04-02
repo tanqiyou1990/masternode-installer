@@ -1,7 +1,7 @@
 <template>
   <div id="wrapper">
     <img id="logo" src="~@/assets/LOGO.png" alt="Vpub">
-    <h1 class="title">维公链主节点安装助手</h1>
+    <h1 class="title">维公链主节点安装助手[剩余:{{unInstallCount}}]</h1>
     <main>
       <div class="steps-content">
         <zero-step v-if="currentStep === 0 || !currentStep" />
@@ -52,6 +52,9 @@ export default {
     currentStep() {
       return this.$store.state.Steps.currentStep;
     },
+    unInstallCount(){
+      return this.$store.state.InstallNode.count;
+    }
   },
   methods: {
     runDaemon() {

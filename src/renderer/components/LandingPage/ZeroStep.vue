@@ -237,17 +237,34 @@ export default {
         .then(res => {
           console.log(res);
           if(res.data.data){
-            this.uninstallNode = res.data.data;
-            this.$store.commit('SET_NODEDATA', {
-              nodeData: this.uninstallNode,
+            this.$store.commit('SET_NODEDCOUNT',{
+              count:res.data.data.count
             });
-            console.log("开始批量安装主节点");
-            this.$store.commit('SET_INSTALL_STATUS', {
-              isInstalling: true,
-            });
-            this.$store.commit('SET_STEP', {
-              currentStep: 1,
-            });
+            
+            if(res.data.data.count>0){
+              this.uninstallNode = res.data.data.node;
+              this.$store.commit('SET_NODEDATA', {
+                nodeData: this.uninstallNode,
+              });
+              console.log("开始批量安装主节点");
+              this.$store.commit('SET_INSTALL_STATUS', {
+                isInstalling: true,
+              });
+
+              this.$store.commit('SET_STEP', {
+                currentStep: 1,
+              });
+            }else{
+              this.loadmsg="主节点已安装完毕!"
+              this.loadding=true;
+              this.$store.commit('SET_INSTALL_STATUS', {
+                isInstalling: false,
+              });
+              this.$store.commit('SET_NODEDATA', {
+                nodeData: null,
+              });
+            }
+
           }else{
             this.loadmsg="主节点已安装完毕!"
             this.loadding=true;
