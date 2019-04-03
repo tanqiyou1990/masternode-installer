@@ -10,7 +10,7 @@
         </div>
         <div style="width:45%;height:50px;float:left;text-align: center;margin: 0 auto;line-height: 40px;">
           <button style="width:90%" disabled="true" v-if="loadTime>0">{{loadTime}}</button>
-          <button v-if="loadTime==0" @click="getMsgCode()">获取验证码</button>
+          <button v-if="loadTime==0" @click="getMsgCode()" :disabled="codeDisabled">{{codeMsg}}</button>
         </div>
       </div>
       <button @click="userLogin" class="btn btn-primary btn-block btn-large">登录</button>
@@ -53,7 +53,15 @@ export default {
       userTel:'',
       msgCode:'',
       loadTime:0,
-      uninstallNode:{}
+      uninstallNode:{},
+      codeMsg:"获取验证码",
+      // 是否禁用按钮
+      codeDisabled: false,
+      // 倒计时秒数
+      countdown: 60,
+      timer: null,
+
+      codeColor:false
     };
   },
   computed: {
@@ -68,6 +76,27 @@ export default {
     }
   },
   methods: {
+      time(){
+      // if (!this.timer) {
+        this.timer = setInterval(() => {
+        if (this.countdown > 0 && this.countdown <= 60) {
+          this.countdown--;
+          if (this.countdown !== 0) {
+            this.codeMsg = "重新发送(" + this.countdown + ")";
+            this.codeColor = true;
+            this.codeDisabled = true;
+          } else {
+            clearInterval(this.timer);
+            this.codeMsg = "获取验证码";
+            this.codeColor = false;
+            this.countdown = 60;
+            this.timer = null;
+            this.codeDisabled = false;
+          }
+        }
+        }, 1000)
+      // }
+    },
     /**
      * 获取区块高度
      */
@@ -188,22 +217,58 @@ export default {
             loginTime: loginTime,
           });
           this.isLogin=true;
+
+          //判断是否快过期的token 单位秒
+          let expires_in = Number(res.data.expires_in);
+          console.log("token剩余：",expires_in);
+          if(expires_in<10800){ //三小时内过期，则刷新token
+            this.getRefreshToken()
+          }
         })
         .catch(error => {
-
+          console.log("登陆失败!");
         })
 
+    },
+    /**
+     * 刷新token
+     */
+    getRefreshToken() {
+      axios.post(`${this.$store.state.Information.baseUrl}/oauth/token`,Qs.stringify({
+        grant_type:'refresh_token',
+        client_id:'vp',
+        client_secret:'vp',
+        refresh_token: this.$store.state.User.refreshToken,
+      }))
+        .then(res => {
+            let accessToken = res.data.access_token;
+            let refreshToken = res.data.refresh_token;
+            this.$store.commit('SET_USERTOKEN', {
+              accessToken: accessToken,
+            });
+            this.$store.commit('SET_REFTOKEN', {
+              refreshToken: refreshToken,
+            });
+            let loginTime = new Date();
+            this.$store.commit('SET_LOGINTIME', {
+              loginTime: loginTime,
+            });
+        });
     },
     /**
      * 发送验证码
      */
     getMsgCode(){
+      if(this.codeDisabled){
+        return;
+      }
       if(this.userTel==null||this.userTel==''){
         new window.Notification('提示', {
           body: '请输入用户手机号码。',
         });
         return;
       }
+      this.time();
       axios.get(`${this.$store.state.Information.baseUrl}/smsCode/` + this.userTel)
           .then(res => {
             if(res.data.data == false) {
@@ -331,8 +396,5 @@ export default {
 .btn-primary { background-color: #4a77d4; background-image: -moz-linear-gradient(top, #6eb6de, #4a77d4); background-image: -ms-linear-gradient(top, #6eb6de, #4a77d4); background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#6eb6de), to(#4a77d4)); background-image: -webkit-linear-gradient(top, #6eb6de, #4a77d4); background-image: -o-linear-gradient(top, #6eb6de, #4a77d4); background-image: linear-gradient(top, #6eb6de, #4a77d4); background-repeat: repeat-x; filter: progid:dximagetransform.microsoft.gradient(startColorstr=#6eb6de, endColorstr=#4a77d4, GradientType=0);  border: 1px solid #3762bc; text-shadow: 1px 1px 1px rgba(0,0,0,0.4); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.5); }
 .btn-primary:hover, .btn-primary:active, .btn-primary.active, .btn-primary.disabled, .btn-primary[disabled] { filter: none; background-color: #4a77d4; }
 .btn-block { width: 100%; display:block; }
-
-
-	
 
 </style>

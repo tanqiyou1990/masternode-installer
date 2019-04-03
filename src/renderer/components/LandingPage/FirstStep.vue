@@ -133,7 +133,6 @@ export default {
             .forEach((tx) => {
               balance += tx.amount;
             });
-          console.log("当前余额:"+balance);
           this.$store.commit('SET_BALANCE', {
             balance:balance
           });
@@ -171,7 +170,6 @@ export default {
             .forEach((tx) => {
               balance += tx.amount;
             });
-          console.log("当前余额:"+balance);
           this.$store.commit('SET_BALANCE', {
             balance:balance
           });
@@ -231,7 +229,6 @@ export default {
         } else{
           this.sendToSelf();
         }
-        console.log("可用的节点信息:",this.availableMasternodesToInstall);
       }).catch((error) => {
         console.error('Error getting the masternode outputs', error);
         setTimeout(() => {
@@ -247,7 +244,6 @@ export default {
       axios.get(`https://pl.vpubchain.net/api/getrawtransaction?txid=${txhash}&decrypt=1`)
         .then((response) => {
           let outlist = response.data.vout;
-          console.log(outlist);
           if(outlist!=null&&outlist.length>0){
             outlist=outlist.filter(item => item.value==10000||item.value=='10000');
           }
@@ -268,8 +264,6 @@ export default {
      * 检查是否满足下一步要求
      */
     checkNextStep(){
-      console.log("installNode:",this.$store.state.InstallNode);
-      console.log("information:",this.$store.state.Information);
       if(
       this.$store.state.InstallNode.nodeData&&
       this.$store.state.Information.mnConfPath&&
@@ -296,7 +290,6 @@ export default {
      */
     installMasternode() {
       console.log('Awesome! we can install');
-      console.log(this.availableMasternodesToInstall);
       if(!this.availableMasternodesToInstall.length){
         console.log("尚未发现可安装的节点，5s后再次尝试安装");
         setTimeout(() => {
@@ -368,20 +361,15 @@ export default {
           },
         }).then((response) => {
           let opts = response.data.result;
-          console.log("检查outpusts:",opts);
-
           if(!opts.length){
             setTimeout(() => {
               this.checkSendSelf(txhash);
             },10000);
           }else{
-
             opts = opts.filter(item => item.txhash==txhash);
-
             if(opts.length){
               this.compareMasternodes();
             }else{
-              console.log("未找到该output，10s后再试!");
               this.loadmsg="正在获取OutPuts信息..."
               setTimeout(() => {
                 this.checkSendSelf(txhash);
@@ -407,7 +395,6 @@ export default {
         this.currentMasternodes = lines
           .filter(line => line[0] !== '#')
           .map((line) => {
-            console.log("line:",line);
             const parts = line.split(' ');
             let tempStr = line.replace(/\s+/g,"");
             if(tempStr!=null&&tempStr!=''&&parts[0]!=null&&parts[0]!=''){
@@ -420,9 +407,6 @@ export default {
               };
             }
           });
-
-        console.log('current masternodes:', this.currentMasternodes);
-
         this.compareMasternodes();
       });
     },
