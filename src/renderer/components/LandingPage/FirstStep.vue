@@ -108,7 +108,6 @@ export default {
       client
       .getNewAddress("MN平台发放启动金-"+this.nodeData.nodeName)
         .then((address) => {
-          console.log("1.生成接收账户:",address);
           this.sendVP(address);
         })
         .catch((err) => {

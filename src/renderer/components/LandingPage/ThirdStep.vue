@@ -115,12 +115,11 @@ export default {
           }else{
             setTimeout(() => {
               this.loadMnList();
-            }, 25000);
+            }, 30000);
           }
         })
         .catch((error) => {
           console.log("error:",error)
-          console.log("s");
           if (error.code === -13) {
             client
               .walletPassphrase(this.passphrase, 5000)
@@ -130,7 +129,7 @@ export default {
           }else{
             setTimeout(() => {
               this.loadMnList();
-            },25000);
+            },30000);
           }
         });
     },
@@ -280,8 +279,6 @@ export default {
           if(response.data.success){
             //成功获取到主节点状态信息
             let rpcStatus = response.data.data;
-
-            console.log(rpcStatus);
 
             let msg = rpcStatus.message;
 
