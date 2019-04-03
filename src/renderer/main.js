@@ -39,7 +39,7 @@ axios.interceptors.request.use(
         if(store.state.User.loginTime){
           let loginTime = new Date(store.state.User.loginTime);
           let nowTime = new Date();
-          if(nowTime.getTime()-loginTime.getTime()>7200000 && !window.isRetryRequest){
+          if(nowTime.getTime()-loginTime.getTime()>7200000 && !window.isRetryRequest && store.state.Steps!=2){
             window.isRetryRequest = true;
             return getRefreshToken()
               .then(res => {
