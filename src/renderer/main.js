@@ -21,8 +21,8 @@ expressApp.use(bodyParser.json());
 function getRefreshToken() {
   return axios.post(`${store.state.Information.baseUrl}/oauth/token`,Qs.stringify({
     grant_type:'refresh_token',
-    client_id:'vp',
-    client_secret:'vp',
+    client_id:'mn-installer',
+    client_secret:'mn-installer',
     refresh_token: store.state.User.refreshToken,
   }))
     .then(res => {

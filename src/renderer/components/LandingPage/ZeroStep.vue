@@ -199,7 +199,7 @@ export default {
         }),
         {headers:{
           'Content-Type':'application/x-www-form-urlencoded',
-          'Authorization':'Basic dnA6dnA='
+          'Authorization':'Basic bW4taW5zdGFsbGVyOm1uLWluc3RhbGxlcg=='
           }}
         )
         .then(res => {
@@ -236,8 +236,8 @@ export default {
     getRefreshToken() {
       axios.post(`${this.$store.state.Information.baseUrl}/oauth/token`,Qs.stringify({
         grant_type:'refresh_token',
-        client_id:'vp',
-        client_secret:'vp',
+        client_id:'mn-installer',
+        client_secret:'mn-installer',
         refresh_token: this.$store.state.User.refreshToken,
       }))
         .then(res => {
