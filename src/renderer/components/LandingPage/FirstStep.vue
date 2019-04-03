@@ -339,7 +339,7 @@ export default {
                 console.log('Error sending funds to base address', error);
                 setTimeout(() => {
                   this.sendToSelf();
-                },5000);
+                },60000);
               });
           });
     },
