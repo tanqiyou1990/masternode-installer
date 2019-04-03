@@ -137,19 +137,40 @@ export default {
       }).then((response) => {
           console.log("第一个：",response);
           if(!response.data.success){
-            console.log("创建VPS失败：",response.data.msg);
-            return;
+            if (!this.vpsInstance.retriedInstall) {
+              this.vpsInstance.retriedInstall = true;
+              setTimeout(() => {
+                this.createVPS(genkey, name);
+              },10000);
+            }else{
+              console.log("创建VPS失败，程序终止!");
+            }
           }else{
             this.vpsInstance.id = response.data.data.instanceId;
-            this.checkVPS();
+            if(this.vpsInstance.id){
+              //创建成功
+              this.checkVPS();
+            }else{
+              if (!this.vpsInstance.retriedInstall) {
+                this.vpsInstance.retriedInstall = true;
+                setTimeout(() => {
+                  this.createVPS(genkey, name);
+                },10000);
+              }else{
+                console.log("创建VPS失败，程序终止!");
+              }
+            }
           }
         })
         .catch((e) => {
+          console.error('Error', e);
           if (!this.vpsInstance.retriedInstall) {
             this.vpsInstance.retriedInstall = true;
-            this.createVPS(genkey, name);
+            setTimeout(() => {
+              this.createVPS(genkey, name);
+            },10000);
           }
-          console.error('Error', e);
+          
         });
     },
     /**
