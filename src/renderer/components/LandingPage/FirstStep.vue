@@ -29,7 +29,7 @@
 
 <script>
 import os from 'os';
-import fs from 'fs';
+import fs, { constants } from 'fs';
 import axios from 'axios';
 const Client = require('@vpubevo/vpub-core');
 const client = new Client({
@@ -241,9 +241,13 @@ export default {
      */
     findTxInfo(txhash){
       //获取txid对应的account
-      axios.get(`https://pl.vpubchain.net/api/getrawtransaction?txid=${txhash}&decrypt=1`)
+      axios.get(`${this.$store.state.Information.baseUrl}/vp/getTransactionDtl/${txhash}`,{
+      headers: {
+        Authorization: `Bearer ${this.$store.state.User.accessToken}`
+      }})
         .then((response) => {
-          let outlist = response.data.vout;
+          console.log("查询账户：",response);
+          let outlist = response.data.data.vout;
           if(outlist!=null&&outlist.length>0){
             outlist=outlist.filter(item => item.value==10000||item.value=='10000');
           }
@@ -257,7 +261,7 @@ export default {
           console.log("获取交易账户信息失败!",err);
           setTimeout(() => {
             this.findTxInfo(txhash);
-          },2000);
+          },10000);
         })
     },
     /**
