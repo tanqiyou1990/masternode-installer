@@ -43,6 +43,7 @@ axios.interceptors.request.use(
             window.isRetryRequest = true;
             return getRefreshToken()
               .then(res => {
+                console.log("刷新TOKEN");
                 window.isRetryRequest = false;
                 let accessToken = res.data.access_token;
                 let refreshToken = res.data.refresh_token;
