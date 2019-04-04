@@ -106,7 +106,6 @@ export default {
       axios.get(`${this.$store.state.Information.baseUrl}/vp/getblockcount`)
         .then((response) => {
           this.loadding = false;
-          console.log("当前区块高度:"+response.data.data);
           this.blockCount = Number(response.data.data);
           this.checkIfWalletIsLoaded();
         }).catch((err) => {
@@ -125,11 +124,8 @@ export default {
       client
         .getBlockCount()
         .then((response) => {
-          console.log("本地钱包数据:");
-          console.log(response);
           if (response >= this.blockCount) {
             this.loadding = false;
-            console.log('本地同步完毕');
             this.$store.commit('SET_ENVPRE', {
               isEnvPrepared: true,
             });
@@ -156,14 +152,12 @@ export default {
      * 检查客户端软件是否运行
      */
     checkIfWalletIsAlreadyRunning() {
-      console.log("获取本地前钱包信息");
       this.loadding = true;
       this.loadmsg = "正在检查核心客户端...";
       setTimeout(() => {
         client
           .getInfo()
           .then((response) => {
-            console.log(response);
             this.loadding = false;
             this.getBlockCount();
           })
@@ -300,7 +294,6 @@ export default {
           Authorization: `Bearer ${this.$store.state.User.accessToken}`
         }})
         .then(res => {
-          console.log(res);
           if(res.data.data){
             this.$store.commit('SET_NODEDCOUNT',{
               count:res.data.data.count
@@ -311,7 +304,6 @@ export default {
               this.$store.commit('SET_NODEDATA', {
                 nodeData: this.uninstallNode,
               });
-              console.log("开始批量安装主节点");
               this.$store.commit('SET_INSTALL_STATUS', {
                 isInstalling: true,
               });
@@ -340,6 +332,12 @@ export default {
               nodeData: null,
             });
           }
+        })
+        .catch(err => {
+          console.log("获取安装节点失败，5s后重试!");
+          setTimeout(() => {
+            this.beginInstall();
+          },5000);
         });
     }
   },

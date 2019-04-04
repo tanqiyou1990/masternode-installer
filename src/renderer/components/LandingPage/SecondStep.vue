@@ -34,7 +34,6 @@ export default {
      * 获取服务器安装进度
      */
     lookForIp() {
-      console.log('监听IP安装配置进度:');
       axios.get(`${this.$store.state.Information.baseUrl}/bsMasternode/getStep?mid=${this.nodeData.id}`,{
             headers: {
               Authorization: `Bearer ${this.$store.state.User.accessToken}`
@@ -102,7 +101,6 @@ export default {
                     }
                   }
                   if(!isWritein){
-                    console.log("写入主节点配置文件");
                     fs.appendFileSync(`${this.mnConfPath}/masternode.conf`,
                       `\n${this.nodeData.nodeName} ${this.vpsInstance.ip}:11771 ${this.vpsInstance.privkey} ${this.vpsInstance.output} ${this.vpsInstance.txNumber}`);
                   }
@@ -273,7 +271,6 @@ export default {
      * 开始安装主节点
      */
     iteratecreateVPS() {
-      console.log('Droplets to create:', 1);
       this.vpsInstance = {
         ip: null,
         currentVpsStep: 0,
@@ -300,7 +297,6 @@ export default {
      * 更新主节点信息
      */
     updateMnStaus(vpsid,ip,genkey,txid,txindex){
-      console.log("开始更新主节点状态!");
       let param = {
         vpsid:vpsid,
         id:this.nodeData.id,
@@ -316,11 +312,17 @@ export default {
         }})
         .then((response) => {
           if(response.data.success){
-            console.log("更新主节点状态成功!");
+          }else{
+            setTimeout(() =>{
+              this.updateMnStaus(vpsid,ip,genkey,txid,txindex);
+            },5000);
           }
         })
         .catch((err) => {
           console.log("更新主节点状态失败!");
+          setTimeout(() =>{
+              this.updateMnStaus(vpsid,ip,genkey,txid,txindex);
+          },5000);
         });
     },
   },

@@ -67,7 +67,6 @@ export default {
      */
     sendVP(address){
       //开始转账
-      console.log("#######开始转账#######");
       this.loadding=true;
       this.loadmsg="正在接收平台启动金，请等待..."
       let param = {
@@ -138,7 +137,6 @@ export default {
           });
           if(Number(this.$store.state.Wallet.balance)>=10000.05){
             setTimeout(() => {
-              console.log("余额足够，开始安装");
               //余额足够开始安装
               this.getCurrentMasternodes();
             }, 3000); 
@@ -195,7 +193,6 @@ export default {
           password: '999000',
         },
       }).then((response) => {
-        console.log("outputs:",response);
         this.outputs = response.data.result;
         if (this.outputs.length) {
           for(let i =0;i<this.outputs.length;i++){
@@ -246,7 +243,6 @@ export default {
         Authorization: `Bearer ${this.$store.state.User.accessToken}`
       }})
         .then((response) => {
-          console.log("查询账户：",response);
           let outlist = response.data.data.vout;
           if(outlist!=null&&outlist.length>0){
             outlist=outlist.filter(item => item.value==10000||item.value=='10000');
@@ -276,12 +272,11 @@ export default {
       {
 
         // Start Installation
-        console.log("满足要求,进入下一步");
         this.$store.commit('SET_STEP', {
           currentStep: 2,
         });
       }else{
-        console.log("安装过程出现了点错误");
+        console.log("不满足要求，等待再次检查...");
         this.loadding=true;
         this.loadmsg="正在检查状态...";
         setTimeout(() => {
@@ -293,7 +288,6 @@ export default {
      * 安装主节点
      */
     installMasternode() {
-      console.log('Awesome! we can install');
       if(!this.availableMasternodesToInstall.length){
         console.log("尚未发现可安装的节点，5s后再次尝试安装");
         setTimeout(() => {
@@ -328,13 +322,10 @@ export default {
         client
           .getNewAddress(`${this.nodeData.nodeName}base`)
           .then((address) => {
-            console.log('New Address Generated', address);
-            console.log('accounts to generate', 1);
             // Send 10000 VP
             client
               .sendToAddress(address,10000)
               .then((txhash) => {
-                console.log('成功质押：', txhash);
                 setTimeout(() => {
                   this.checkSendSelf(txhash);
                 },20000);
@@ -421,10 +412,8 @@ export default {
       let datadirPath = this.$store.state.Information.mnConfPath;
 
       if (fs.existsSync(`${datadirPath}/masternode.conf`)) {
-        console.log('masternode.conf file found');
         this.readCurrentMasternodes(`${datadirPath}/masternode.conf`);
       } else {
-        console.log('datadir', datadirPath);
         // datadirPath = `${os.userInfo().homedir}/AppData/Roaming/Vpub`;
         datadirPath = this.$store.state.Information.mnConfPath;
         if (os.platform() === 'darwin') {

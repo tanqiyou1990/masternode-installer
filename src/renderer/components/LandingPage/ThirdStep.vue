@@ -105,7 +105,6 @@ export default {
           },
         })
         .then((response) => {
-          console.log("start-alias",response);
           if (response.result=="failed") {
             this.loading = true;
             this.loadmsg = '区块数据同步中...'
@@ -154,7 +153,6 @@ export default {
      * 重启客户端程序
      */
     restartDaemon() {
-      console.log("重启节点");
       client
         .stop()
         .then(() => {
@@ -172,8 +170,6 @@ export default {
                     this.closeDaemon();
                   }, 10000);
                 }
-                console.log(stderr);
-                console.log(stdout);
               });
           }, 3000);
         });
@@ -184,7 +180,6 @@ export default {
      */
     confVpub(){
       if (fs.existsSync(`${this.$store.state.Information.mnConfPath}/vpub.conf`)) {
-        console.log('vpub.conf file found');
         //获取当前配置
         fs.readFile(`${this.$store.state.Information.mnConfPath}/vpub.conf`, 'utf8', (err, data) => {
           if (err) throw err;
@@ -198,7 +193,6 @@ export default {
                 value:parts[1]
               };
             });
-          console.log('current Confs:', this.currentConfs);
           let haverpcuser=false;
           let haverpcpassword=false;
           let haverpcport=false;
