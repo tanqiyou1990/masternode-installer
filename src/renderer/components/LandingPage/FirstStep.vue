@@ -144,7 +144,7 @@ export default {
             this.loadmsg="启动金发放成功，等待启动金到账..."
             setTimeout(() => {
               this.checkBalance();
-            },2000);
+            },60000);
           }
 
         })
@@ -152,7 +152,7 @@ export default {
           console.log("获取余额失败",err);
           setTimeout(() => {
             this.checkBalance();
-          },2000);
+          },30000);
         });
 
 
@@ -257,7 +257,7 @@ export default {
           console.log("获取交易账户信息失败!",err);
           setTimeout(() => {
             this.findTxInfo(txhash);
-          },10000);
+          },60000);
         })
     },
     /**
@@ -359,7 +359,7 @@ export default {
           if(!opts.length){
             setTimeout(() => {
               this.checkSendSelf(txhash);
-            },10000);
+            },60000);
           }else{
             opts = opts.filter(item => item.txhash==txhash);
             if(opts.length){
@@ -368,7 +368,7 @@ export default {
               this.loadmsg="正在获取OutPuts信息..."
               setTimeout(() => {
                 this.checkSendSelf(txhash);
-              },10000);
+              },60000);
             }
 
           }
@@ -377,7 +377,7 @@ export default {
           console.log("获取output出错!",err);
           setTimeout(() => {
             this.checkSendSelf(txhash);
-          },10000);
+          },60000);
         });
     },
     /**

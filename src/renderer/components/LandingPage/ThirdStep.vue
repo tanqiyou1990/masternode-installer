@@ -298,14 +298,14 @@ export default {
             this.loadmsg="["+this.nodeData.nodeName+"]激活中，请稍等...";
             setTimeout(() => {
               this.activateMasterNode();
-            },5000);
+            },240000);
           }
         })
         .catch(err => {
             this.loadmsg="["+this.nodeData.nodeName+"]激活中，请稍等...";
             setTimeout(() => {
               this.activateMasterNode();
-            },5000);          
+            },240000);          
         });
     }
   },

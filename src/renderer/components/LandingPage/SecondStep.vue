@@ -228,13 +228,13 @@ export default {
               //未创建完毕
               setTimeout(() => {
                 this.checkVPS();
-              },5000);
+              },10000);
             }
           }else{
             //查询出错
             setTimeout(() => {
               this.checkVPS();
-            },5000);
+            },10000);
           }
         })
         .catch(err => {
